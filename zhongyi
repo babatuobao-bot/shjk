@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>伤寒论知识查询系统</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0f;--bg-card:#141418;--bg3:#1c1c22;
+  --text:#e8e4d8;--text-secondary:#a09880;--border:#2a2a35;--border2:#3a3a48;
+  --accent:#c8a84b;--accent-light:#e8c86a;--accent-bg:rgba(200,168,75,.08);
+  --gold:#c8a84b;--gold2:#e8c86a;
+  --tag-sun:#d07030;--tag-yangming:#b04040;--tag-shaoyang:#3a8a5a;
+  --tag-taiyin:#3a7aaa;--tag-shaoyin:#5a4aaa;--tag-jueyin:#8a3a7a;
+  --shadow:0 2px 8px rgba(0,0,0,.4);--shadow-md:0 8px 24px rgba(0,0,0,.6);
+  --radius:6px;--radius-lg:12px;
+  --ink:var(--text);--ink-light:var(--text-secondary);--ink-faint:#6a6358;
+  --red-seal:#c44040;--gold-light:var(--gold2);
+}
+html{scroll-behavior:smooth}
+body{font-family:"Noto Serif SC","STSong","SimSun","宋体",serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+.header{background:linear-gradient(135deg,#08080a,#160f06);border-bottom:1px solid var(--border2);padding:0;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.9)}
+.header-inner{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.header h1{font-size:20px;font-weight:700;white-space:nowrap;cursor:pointer;color:var(--accent-light);letter-spacing:.1em}
+.header h1:hover{opacity:.85}
+.search-box{flex:1;max-width:420px;position:relative}
+.search-box input{width:100%;padding:8px 14px 8px 36px;border:1px solid var(--border2);border-radius:20px;background:rgba(255,255,255,.06);color:var(--text);font-size:14px;outline:none;transition:all .2s;font-family:inherit}
+.search-box input::placeholder{color:var(--text-secondary)}
+.search-box input:focus{background:rgba(200,168,75,.07);border-color:var(--accent)}
+.search-box .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-secondary)}
+.search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-card);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-md);max-height:400px;overflow-y:auto;display:none;font-size:14px;z-index:300}
+.search-results.active{display:block}
+.search-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;color:var(--text-secondary);transition:background .15s}
+.search-result-item:last-child{border-bottom:none}
+.search-result-item:hover{background:var(--accent-bg);color:var(--text)}
+.search-result-item .type-badge{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--accent-bg);color:var(--accent);white-space:nowrap}
+.nav{background:var(--bg-card);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;padding:0 20px}
+.nav-tab{padding:11px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;user-select:none;letter-spacing:.02em}
+.nav-tab:hover{color:var(--accent)}
+.nav-tab.active{color:var(--accent-light);border-bottom-color:var(--accent);font-weight:600}
+.nav-sep{width:1px;background:var(--border2);margin:8px 4px;flex-shrink:0}
+.main{max-width:1200px;margin:0 auto;padding:24px 20px 60px}
+.page{display:none}.page.active{display:block}
+.hero{text-align:center;padding:36px 20px}
+.hero h2{font-size:26px;color:var(--accent-light);margin-bottom:8px;letter-spacing:.15em}
+.hero p{color:var(--text-secondary);font-size:14px;margin-bottom:18px}
+.hero .quote{font-size:14px;color:var(--accent);font-style:italic;padding:14px 22px;background:var(--accent-bg);border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;display:inline-block;margin-bottom:28px;line-height:1.9}
+.flow-diagram{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+.flow-item{padding:9px 18px;background:var(--bg-card);border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-weight:500}
+.flow-arrow{font-size:18px;color:var(--accent)}
+.section-title{font-size:15px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--text);letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';display:inline-block;width:3px;height:16px;background:var(--accent);border-radius:2px;flex-shrink:0}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px;margin-bottom:24px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:17px;cursor:pointer;transition:all .2s}
+.card:hover{border-color:var(--accent);box-shadow:0 0 18px rgba(200,168,75,.1);transform:translateY(-2px)}
+.card h3{font-size:14px;margin-bottom:7px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.card p{font-size:13px;color:var(--text-secondary);margin-bottom:4px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:3px;color:#fff;font-weight:500}
+.tag-太阳{background:var(--tag-sun)}.tag-阳明{background:var(--tag-yangming)}.tag-少阳{background:var(--tag-shaoyang)}.tag-太阴{background:var(--tag-taiyin)}.tag-少阴{background:var(--tag-shaoyin)}.tag-厥阴{background:var(--tag-jueyin)}
+.tag-金匮{background:rgba(200,168,75,.2);color:var(--gold2);border:1px solid rgba(200,168,75,.4)}
+.tag-type{background:var(--accent-bg);color:var(--accent);border:1px solid rgba(200,168,75,.2)}
+.detail-header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.back-btn{padding:6px 13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text-secondary);transition:all .2s;font-family:inherit}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+.detail-title{font-size:21px;font-weight:700;color:var(--accent-light);letter-spacing:.08em}
+.detail-content{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-md)}
+.detail-section{margin-bottom:20px}.detail-section:last-child{margin-bottom:0}
+.detail-section h4{font-size:12px;color:var(--accent);margin-bottom:9px;padding-bottom:6px;border-bottom:1px dashed var(--border);letter-spacing:.15em;text-transform:uppercase}
+.detail-section ul{list-style:none;padding:0}
+.detail-section li{padding:3px 0;font-size:14px;color:var(--text)}
+.detail-section li::before{content:"· ";color:var(--accent)}
+.original-text{background:var(--accent-bg);border-left:3px solid var(--accent);padding:13px 17px;border-radius:0 var(--radius) var(--radius) 0;font-size:14px;line-height:2;margin:8px 0;color:var(--text)}
+.original-text .source{font-size:12px;color:var(--text-secondary);margin-top:6px;font-style:italic}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--accent-bg);font-weight:600;color:var(--accent);font-size:12px;letter-spacing:.1em}
+td{color:var(--text-secondary)}
+tr:hover td{background:var(--accent-bg)}
+.link-chip{display:inline-block;padding:3px 10px;margin:2px 3px 2px 0;background:var(--accent-bg);border:1px solid rgba(200,168,75,.22);border-radius:14px;font-size:12px;color:var(--accent);cursor:pointer;transition:all .2s}
+.link-chip:hover{background:var(--accent);color:var(--bg)}
+.meridian-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;margin-bottom:8px}
+.meridian-card{text-align:center;padding:14px 8px;border-radius:var(--radius-lg);cursor:pointer;transition:all .2s;color:#fff;font-weight:600;font-size:13px}
+.meridian-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.meridian-card small{display:block;font-size:11px;font-weight:400;opacity:.85;margin-top:3px}
+.m-太阳{background:linear-gradient(135deg,#c06020,#e08040)}.m-阳明{background:linear-gradient(135deg,#943030,#c05050)}.m-少阳{background:linear-gradient(135deg,#2a7a4a,#4a9a6a)}.m-太阴{background:linear-gradient(135deg,#2a6a8a,#4a8aaa)}.m-少阴{background:linear-gradient(135deg,#4a3a8a,#6a5aaa)}.m-厥阴{background:linear-gradient(135deg,#7a2a5a,#9a4a7a)}
+.jk-meridian-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;margin-bottom:8px}
+.jk-meridian-card{text-align:center;padding:14px 8px;border-radius:var(--radius-lg);cursor:pointer;transition:all .2s;font-weight:700;font-size:13px;background:linear-gradient(135deg,#c8a84b,#e8c86a);border:1px solid rgba(200,168,75,.6);color:#1a1200;text-shadow:none}
+.jk-meridian-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(200,168,75,.2)}
+.jk-meridian-card small{display:block;font-size:11px;font-weight:400;opacity:.85;margin-top:3px}
+@media(max-width:640px){.header-inner{flex-wrap:wrap}.search-box{order:3;max-width:100%;flex-basis:100%}.hero h2{font-size:20px}.cards-grid{grid-template-columns:1fr}.detail-content{padding:14px}.flow-diagram{flex-direction:column}.flow-arrow{transform:rotate(90deg)}.meridian-cards,.jk-meridian-cards{grid-template-columns:repeat(3,1fr)}}
+.breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:14px}
+.breadcrumb span{cursor:pointer;color:var(--accent)}
+.breadcrumb span:hover{text-decoration:underline}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.filter-chip{padding:5px 13px;border:1px solid var(--border2);border-radius:14px;font-size:12px;cursor:pointer;background:var(--bg-card);color:var(--text-secondary);transition:all .2s;font-family:inherit}
+.filter-chip:hover,.filter-chip.active{border-color:var(--accent);color:var(--accent-light);background:var(--accent-bg)}
+.checker{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.checker h3{margin-bottom:10px;font-size:14px;color:var(--text)}
+.symptom-selector{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.symptom-btn{padding:5px 12px;border:1px solid var(--border2);border-radius:14px;font-size:13px;cursor:pointer;background:var(--bg3);color:var(--text-secondary);transition:all .2s;font-family:inherit}
+.symptom-btn:hover{border-color:var(--accent);color:var(--accent)}
+.symptom-btn.selected{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.checker-result{margin-top:12px}
+.match-card{padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:9px;background:var(--bg3);cursor:pointer;transition:all .2s}
+.match-card:hover{border-color:var(--accent)}
+.match-card h4{font-size:14px;margin-bottom:5px;color:var(--text)}
+.match-bar{height:3px;background:var(--border2);border-radius:2px;margin:7px 0;overflow:hidden}
+.match-bar-fill{height:100%;border-radius:2px;background:linear-gradient(to right,var(--accent),var(--accent-light));transition:width .3s}
+.match-detail{font-size:12px;color:var(--text-secondary)}
+.match-symptoms{font-size:12px;margin-top:5px}
+.match-symptoms .matched{color:#6aaa8a}
+.match-symptoms .missing{color:var(--text-secondary);text-decoration:line-through}
+.g{font-size:12px;color:var(--text-secondary)}
+/* 钤法 */
+.qf-banner{background:var(--accent-bg);border:1px solid rgba(200,168,75,.2);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:20px}
+.qf-banner p{font-size:13px;color:var(--text-secondary);line-height:1.9;margin-bottom:5px}
+.qf-banner p:last-child{margin-bottom:0}
+.qf-form{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:16px}
+.qf-ftitle{font-size:14px;color:var(--accent-light);margin-bottom:16px;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.qf-ftitle::before{content:'';display:inline-block;width:3px;height:16px;background:var(--accent);border-radius:2px}
+.fr4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:700px){.fr4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.fr2{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+.fs,.fi{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 11px;font-size:14px;color:var(--text);font-family:inherit;outline:none;transition:all .2s;width:100%}
+.fs:focus,.fi:focus{border-color:var(--accent)}
+.fs option{background:var(--bg3)}
+.fhint{font-size:11px;color:var(--text-secondary)}
+.gz-disp{background:var(--accent-bg);border:1px solid rgba(200,168,75,.2);border-radius:var(--radius);padding:8px 11px;font-size:13px;color:var(--accent-light);text-align:center;min-height:36px;display:flex;align-items:center;justify-content:center;letter-spacing:.06em}
+.fbtn{display:block;width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#1a1200;font-size:14px;font-weight:700;font-family:inherit;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:.15em;transition:all .2s;margin-top:4px}
+.fbtn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 18px rgba(200,168,75,.3)}
+.rbox{background:var(--bg-card);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:22px;display:none;animation:fadeIn .4s ease;margin-top:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.rs{margin-bottom:20px}.rs:last-child{margin-bottom:0}
+.rs h3{font-size:12px;color:var(--accent);letter-spacing:.12em;margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--border);text-transform:uppercase}
+.rmeridian{display:inline-flex;align-items:center;gap:10px;padding:9px 16px;border-radius:var(--radius);margin-bottom:11px;font-size:15px;font-weight:700}
+.ri{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ri:last-child{border-bottom:none}
+.ril{font-size:11px;color:var(--text-secondary);white-space:nowrap;padding-top:2px;min-width:60px}
+.riv{font-size:14px;color:var(--text);flex:1;line-height:1.8}
+.rfl{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px}
+.fb{padding:5px 13px;background:var(--accent-bg);border:1px solid rgba(200,168,75,.22);border-radius:15px;font-size:12px;color:var(--accent-light);cursor:pointer;transition:all .2s;font-family:inherit}
+.fb:hover{background:var(--accent);color:var(--bg)}
+.nb{background:var(--accent-bg);border:1px dashed rgba(200,168,75,.2);border-radius:var(--radius);padding:11px 15px;font-size:13px;color:var(--text-secondary);line-height:1.9;margin-top:10px}
+.nb strong{color:var(--accent)}
+.gztable{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:24px}
+@media(max-width:560px){.gztable{grid-template-columns:1fr}}
+.gzblock{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px}
+.gzblock-title{font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:9px;text-transform:uppercase}
+/* 五运六气 */
+.wq-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.wq-tabs{display:flex;border-bottom:1px solid var(--border)}
+.wq-tab-btn{flex:1;padding:12px 8px;font-size:13px;color:var(--text-secondary);cursor:pointer;border:none;background:var(--bg3);font-family:inherit;transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px}
+.wq-tab-btn:hover{color:var(--accent)}
+.wq-tab-btn.active{color:var(--accent-light);border-bottom-color:var(--accent);background:var(--bg-card)}
+.wq-panel{display:none;padding:22px}.wq-panel.active{display:block}
+.result-area{margin-top:4px;animation:fadeIn .4s ease}
+.result-header{text-align:center;padding:16px;background:var(--accent-bg);border:1px solid rgba(200,168,75,.2);border-radius:var(--radius-lg);margin-bottom:16px}
+.ganzhi{font-size:26px;color:var(--gold2);letter-spacing:.3em;font-weight:700}
+.year-label{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.info-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px}
+.info-item .label{font-size:11px;color:var(--text-secondary);letter-spacing:.08em;margin-bottom:4px}
+.info-item .value{font-size:14px;color:var(--text)}
+.info-item .value.highlight{color:var(--gold2)}
+.divider{font-size:12px;color:var(--accent);letter-spacing:.12em;text-align:center;padding:9px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:14px 0;text-transform:uppercase}
+.jingwen{background:var(--accent-bg);border-left:3px solid var(--accent);padding:13px 16px;border-radius:0 var(--radius) var(--radius) 0;margin:9px 0;font-size:13px;line-height:1.9;color:var(--text-secondary)}
+.jingwen .source{font-size:11px;color:var(--accent);margin-bottom:5px;font-style:italic}
+.jingwen .classical{color:var(--text);margin-bottom:7px;line-height:2}
+.jieqi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:9px 0}
+@media(max-width:600px){.jieqi-grid{grid-template-columns:repeat(4,1fr)}}
+.jieqi-item{text-align:center;padding:7px 4px;border-radius:var(--radius);background:var(--bg3);border:1px solid var(--border);font-size:12px}
+.jieqi-item.current{background:var(--accent-bg);border-color:var(--accent)}
+.jq-name{color:var(--text);font-weight:500}
+.jq-date{color:var(--text-secondary);font-size:11px;margin-top:2px}
+.qibiao{width:100%;border-collapse:collapse;font-size:13px;margin:9px 0}
+.qibiao th,.qibiao td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.qibiao th{background:var(--accent-bg);color:var(--accent);font-size:11px;letter-spacing:.08em}
+.qibiao td{color:var(--text-secondary)}
+.disease-card{border-radius:var(--radius);padding:11px 14px;margin:7px 0;font-size:13px;line-height:1.8;color:var(--text)}
+.disease-card.high{background:rgba(196,64,64,.1);border-left:3px solid #c44040}
+.disease-card.medium{background:var(--accent-bg);border-left:3px solid var(--accent)}
+.disease-card.low{background:rgba(74,138,106,.08);border-left:3px solid #4a8a6a}
+.disease-title{font-weight:600;margin-bottom:4px}
+.btn{padding:9px 20px;background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#1a1200;font-size:13px;font-weight:700;font-family:inherit;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:.1em;transition:all .2s}
+.btn:hover{opacity:.9}
+.form-group{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:14px}
+.form-group label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary)}
+.form-group label span{font-size:12px;color:var(--accent);white-space:nowrap}
+.form-group input,.form-group select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-size:14px;color:var(--text);font-family:inherit;outline:none;transition:border .2s;width:100px}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select{width:120px}.form-group select option{background:var(--bg3)}
+
+/* ===== 亮色主题 ===== */
+body.light-mode {
+  --bg:#faf8f4;--bg-card:#ffffff;--bg3:#f0ece4;
+  --text:#2c2418;--text-secondary:#6a5a48;--border:#ddd5c8;--border2:#c8bfb0;
+  --accent:#8b6914;--accent-light:#b8901a;--accent-bg:rgba(139,105,20,.07);
+  --gold:#8b6914;--gold2:#b8901a;
+  --tag-sun:#c86010;--tag-yangming:#a03030;--tag-shaoyang:#2a7040;
+  --tag-taiyin:#2a60a0;--tag-shaoyin:#4a3a90;--tag-jueyin:#7a2a68;
+  --shadow:0 2px 8px rgba(0,0,0,.1);--shadow-md:0 8px 24px rgba(0,0,0,.15);
+  --ink:var(--text);--ink-light:var(--text-secondary);--ink-faint:#a09070;
+  --red-seal:#c03030;--gold-light:var(--gold2);
+}
+body.light-mode .header{background:linear-gradient(135deg,#2c1808,#4a2c10)}
+body.light-mode .nav{background:#fff}
+body.light-mode .bg-card,.light-mode .checker,.light-mode .wq-wrap{background:#fff}
+body.light-mode .bg3{background:#f0ece4}
+body.light-mode .jk-meridian-card{background:linear-gradient(135deg,#8b6914,#b8901a);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+body.light-mode .jk-meridian-card:hover{box-shadow:0 6px 20px rgba(139,105,20,.35)}
+body.light-mode .meridian-card:hover{box-shadow:0 6px 16px rgba(0,0,0,.2)}
+body.light-mode .card:hover{box-shadow:0 4px 16px rgba(0,0,0,.12)}
+body.light-mode .symptom-btn{background:#f5f0e8}
+body.light-mode .match-card{background:#f5f0e8}
+body.light-mode .wq-tab-btn{background:#f5f0e8}
+body.light-mode .info-item{background:#f5f0e8}
+body.light-mode .jieqi-item{background:#f5f0e8}
+body.light-mode .original-text{background:rgba(139,105,20,.06)}
+body.light-mode .disease-card.high{background:rgba(160,48,48,.08)}
+body.light-mode .disease-card.low{background:rgba(42,112,64,.08)}
+body.light-mode .gz-disp{background:rgba(139,105,20,.08)}
+body.light-mode .rbox,.light-mode .qf-form{background:#fff}
+body.light-mode .fi,.light-mode .fs{background:#f5f0e8}
+body.light-mode .gzblock{background:#fff}
+body.light-mode .fbtn{color:#fff}
+body.light-mode .btn{color:#fff}
+
+/* 切换按钮 */
+.theme-toggle{
+  display:flex;align-items:center;gap:0;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;overflow:hidden;flex-shrink:0;
+}
+.theme-toggle button{
+  padding:5px 12px;font-size:12px;border:none;cursor:pointer;
+  font-family:inherit;transition:all .2s;line-height:1;
+  background:transparent;color:rgba(255,255,255,.6);letter-spacing:.03em;
+}
+.theme-toggle button.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600;}
+.theme-toggle button:hover:not(.active){color:rgba(255,255,255,.9);}
+body.light-mode .theme-toggle{background:rgba(0,0,0,.08);border-color:rgba(0,0,0,.15)}
+body.light-mode .theme-toggle button{color:rgba(0,0,0,.45)}
+body.light-mode .theme-toggle button.active{background:rgba(0,0,0,.12);color:rgba(0,0,0,.85)}
+</style>
+</head>
+<body>
+<div class="header"><div class="header-inner"><h1 onclick="showPage('home')">📚 伤寒论</h1><div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="搜索证候、方剂、症状…" oninput="handleSearch(this.value)"><div class="search-results" id="searchResults"></div></div><div class="theme-toggle"><button id="btn-dark" class="active" onclick="setTheme('dark')">🌙 暗色</button><button id="btn-light" onclick="setTheme('light')">☀️ 亮色</button></div></div></div>
+<nav class="nav"><div class="nav-inner"><div class="nav-tab active" data-page="home">🏠 首页</div><div class="nav-sep"></div><div class="nav-tab" data-page="checker">🩺 症状查询</div><div class="nav-tab" data-page="syndromes">📋 六经证候</div><div class="nav-tab" data-page="formulas">💊 方剂</div><div class="nav-tab" data-page="symptoms">🔤 症状</div><div class="nav-sep"></div><div class="nav-tab" data-page="jinkui">📗 金匮要略</div><div class="nav-sep"></div><div class="nav-tab" data-page="wuyun">🌿 五运六气</div><div class="nav-tab" data-page="qianfa">🔯 钤法推演</div></div></nav>
+<main class="main">
+<div class="page active" id="page-home">
+<div class="hero"><h2>伤寒论 · 金匮要略</h2><p>东汉·张仲景 著 — 六经辨证 · 杂病论治 · 有是证用是方</p><div class="quote">"观其脉证，知犯何逆，随证治之。"<br><span style="font-size:12px;opacity:.7;display:block;margin-top:3px">"夫治未病者，见肝之病，知肝传脾，当先实脾。"</span></div><div class="flow-diagram"><div class="flow-item">🔤 症状</div><div class="flow-arrow">→</div><div class="flow-item">📋 证候</div><div class="flow-arrow">→</div><div class="flow-item">💊 方剂</div><div class="flow-arrow">→</div><div class="flow-item">📜 原文</div></div></div>
+<div class="section-title">六经辨证</div>
+<div class="meridian-cards" id="meridianCards"></div>
+<div class="section-title" style="margin-top:20px;color:var(--gold2)">金匮要略 · 杂病分类</div>
+<div class="jk-meridian-cards" id="jinkuiCards"></div>
+<div class="section-title" style="margin-top:20px">功能入口</div>
+<div class="cards-grid">
+<div class="card" onclick="showPage('checker')"><h3>🩺 症状查方</h3><p>点选症状，自动匹配六经证候与方剂</p></div>
+<div class="card" onclick="showPage('syndromes')"><h3>📋 六经证候</h3><p>按六经分类，查看全部证候详情</p></div>
+<div class="card" onclick="showPage('formulas')"><h3>💊 方剂速查</h3><p>组成、用量、功效、主治、禁忌一览</p></div>
+<div class="card" onclick="showPage('symptoms')"><h3>🔤 症状对照表</h3><p>每个症状在六经中的不同表现与方剂</p></div>
+<div class="card" onclick="showPage('jinkui')"><h3>📗 金匮要略</h3><p>杂病分类查询：痰饮、水气、胸痹、虚劳、妇人等</p></div>
+<div class="card" onclick="showPage('wuyun')"><h3>🌿 五运六气</h3><p>年运查询、个人体质分析、天气预测</p></div>
+<div class="card" onclick="showPage('qianfa')"><h3>🔯 伤寒钤法推演</h3><p>输入阳历日期，自动换算干支，推算归经与经方</p><p style="color:var(--accent);font-size:11px;margin-top:5px">五运六气 · 算病推演</p></div>
+</div>
+</div>
+<div class="page" id="page-checker"><div class="breadcrumb"><span onclick="showPage('home')">首页</span> / 症状查询</div><div class="checker"><h3>🩺 症状组合查询</h3><p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">点击选择症状，系统自动匹配可能的证候与方剂</p><div class="symptom-selector" id="symptomSelector"></div><div class="checker-result" id="checkerResult"></div></div></div>
+<div class="page" id="page-syndromes"><div class="breadcrumb"><span onclick="showPage('home')">首页</span> / 证候</div><div id="syndromesList"></div><div id="syndromeDetail" style="display:none"></div></div>
+<div class="page" id="page-formulas"><div class="breadcrumb"><span onclick="showPage('home')">首页</span> / 方剂</div><div id="formulasList"></div><div id="formulaDetail" style="display:none"></div></div>
+<div class="page" id="page-symptoms"><div class="breadcrumb"><span onclick="showPage('home')">首页</span> / 症状</div><div id="symptomsList"></div><div id="symptomDetail" style="display:none"></div></div>
+<div class="page" id="page-jinkui"><div class="breadcrumb"><span onclick="showPage('home')">首页</span> / 金匮要略</div><div id="jinkuiContent"></div></div>
+<div class="page" id="page-wuyun">
+<div class="breadcrumb"><span onclick="showPage('home')">首页</span> / 五运六气</div>
+<div class="section-title">🌿 五运六气 · 黄帝内经运气学说</div>
+<div class="wq-wrap">
+  <div class="wq-tabs">
+    <button class="wq-tab-btn active" data-tab="year">📅 年运查询</button>
+    <button class="wq-tab-btn" data-tab="personal">👤 个人运气</button>
+    <button class="wq-tab-btn" data-tab="weather">🌤 天气预测</button>
+  </div>
+  <div class="wq-panel active" id="wq-panel-year">
+    <h3 style="font-size:14px;color:var(--accent-light);margin-bottom:6px">年运查询</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">输入年份，查询该年天干地支、五运六气及《黄帝内经》相关原文</p>
+    <div class="form-group"><label><span>年份</span><input type="number" id="year-input" min="1" max="9999" value="2026"></label><button class="btn" onclick="queryYear()">查 询</button></div>
+    <div id="year-result" class="result-area"></div>
+  </div>
+  <div class="wq-panel" id="wq-panel-personal">
+    <h3 style="font-size:14px;color:var(--accent-light);margin-bottom:6px">个人运气查询</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">输入公历出生日期，推算先天运气体质及易发疾病</p>
+    <div class="form-group"><label><span>年</span><input type="number" id="birth-year" min="1900" max="2100" value="1990"></label><label><span>月</span><select id="birth-month"><option value="1">一月</option><option value="2">二月</option><option value="3">三月</option><option value="4">四月</option><option value="5">五月</option><option value="6">六月</option><option value="7">七月</option><option value="8">八月</option><option value="9">九月</option><option value="10">十月</option><option value="11">十一月</option><option value="12">十二月</option></select></label><label><span>日</span><select id="birth-day"></select></label><button class="btn" onclick="queryPersonal()">查 询</button></div>
+    <div id="personal-result" class="result-area"></div>
+  </div>
+  <div class="wq-panel" id="wq-panel-weather">
+    <h3 style="font-size:14px;color:var(--accent-light);margin-bottom:6px">天气灾害预测</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">据《内经》五运六气理论，推演当年气候特征与灾害倾向</p>
+    <div class="form-group"><label><span>年份</span><input type="number" id="weather-year" min="1" max="9999" value="2026"></label><button class="btn" onclick="queryWeather()">推 演</button></div>
+    <div id="weather-result" class="result-area"></div>
+  </div>
+</div>
+</div>
+<div class="page" id="page-qianfa">
+<div class="breadcrumb"><span onclick="showPage('home')">首页</span> / 钤法推演</div>
+<div class="section-title">🔯 伤寒钤法推演</div>
+<div class="qf-banner"><p><strong style="color:var(--accent)">推演原理：</strong>以患者生年地支（属相）配合发病日干支，按「六气歌」确定归经，结合「五运歌」推演脏腑证型，从《伤寒论》中选取对应经方。</p><p><strong style="color:var(--accent)">本系统：</strong>只需输入阳历日期，自动换算天干地支，实时显示对应干支供参考。</p><p style="font-size:12px;color:var(--text-secondary)">⚠️ 仅供学习参考，临床用药请以四诊合参、辨证论治为准。</p></div>
+<div class="qf-form">
+  <div class="qf-ftitle">患者信息 · 输入阳历日期</div>
+  <div style="margin-bottom:12px"><div class="fl" style="margin-bottom:6px">出生日期（阳历）→ 自动显示年柱干支</div>
+  <div class="fr4"><div class="fg"><label class="fl">出生年份</label><input class="fi" type="number" id="qf-by" min="1900" max="2100" placeholder="如 1990" oninput="updateQFBirth()"></div><div class="fg"><label class="fl">出生月份</label><input class="fi" type="number" id="qf-bm" min="1" max="12" placeholder="1-12" oninput="updateQFBirth()"></div><div class="fg"><label class="fl">出生日</label><input class="fi" type="number" id="qf-bd" min="1" max="31" placeholder="1-31" oninput="updateQFBirth()"></div><div class="fg"><label class="fl">年柱干支（自动）</label><div class="gz-disp" id="qfBirthDisp">—</div></div></div></div>
+  <div style="margin-bottom:16px"><div class="fl" style="margin-bottom:6px">发病日期（阳历）→ 自动显示日柱干支</div>
+  <div class="fr4"><div class="fg"><label class="fl">发病年份</label><input class="fi" type="number" id="qf-dy" min="1900" max="2100" placeholder="如 2024" oninput="updateQFDay()"></div><div class="fg"><label class="fl">发病月份</label><input class="fi" type="number" id="qf-dm" min="1" max="12" placeholder="1-12" oninput="updateQFDay()"></div><div class="fg"><label class="fl">发病日</label><input class="fi" type="number" id="qf-dd" min="1" max="31" placeholder="1-31" oninput="updateQFDay()"></div><div class="fg"><label class="fl">日柱干支（自动）</label><div class="gz-disp" id="qfDayDisp">—</div></div></div></div>
+  <div class="fr2"><div class="fg"><label class="fl">发病时辰（可选）</label><select class="fs" id="qf-dh"><option value="">不填（按日推演）</option><option value="子">子时（23:00-01:00）</option><option value="丑">丑时（01:00-03:00）</option><option value="寅">寅时（03:00-05:00）</option><option value="卯">卯时（05:00-07:00）</option><option value="辰">辰时（07:00-09:00）</option><option value="巳">巳时（09:00-11:00）</option><option value="午">午时（11:00-13:00）</option><option value="未">未时（13:00-15:00）</option><option value="申">申时（15:00-17:00）</option><option value="酉">酉时（17:00-19:00）</option><option value="戌">戌时（19:00-21:00）</option><option value="亥">亥时（21:00-23:00）</option></select><div class="fhint">填写时辰可进一步推演时柱六气</div></div><div class="fg"><label class="fl">主要症状（可选）</label><input class="fi" type="text" id="qf-ms" placeholder="如：发热、无汗、恶寒…"><div class="fhint">填写主症辅助验证推演结果</div></div></div>
+  <button class="fbtn" onclick="doQianfa()">开始推演 · 推算归经与经方</button>
+</div>
+<div class="rbox" id="qfResult"><div id="qfOut"></div></div>
+<div class="gztable"><div class="gzblock"><div class="gzblock-title">六气歌 · 地支归经</div><table><tr><th>地支</th><th>六气</th><th>归经</th></tr><tr><td>子、午</td><td>少阴君火</td><td>少阴经</td></tr><tr><td>丑、未</td><td>太阴湿土</td><td>太阴经</td></tr><tr><td>寅、申</td><td>少阳相火</td><td>少阳经</td></tr><tr><td>卯、酉</td><td>阳明燥金</td><td>阳明经</td></tr><tr><td>辰、戌</td><td>太阳寒水</td><td>太阳经</td></tr><tr><td>巳、亥</td><td>厥阴风木</td><td>厥阴经</td></tr></table></div><div class="gzblock"><div class="gzblock-title">五运歌 · 天干化运</div><table><tr><th>天干</th><th>化运</th><th>脏腑</th></tr><tr><td>甲（阳）、己（阴）</td><td>土运</td><td>脾胃</td></tr><tr><td>乙（阴）、庚（阳）</td><td>金运</td><td>肺大肠</td></tr><tr><td>丙（阳）、辛（阴）</td><td>水运</td><td>肾膀胱</td></tr><tr><td>丁（阴）、壬（阳）</td><td>木运</td><td>肝胆</td></tr><tr><td>戊（阳）、癸（阴）</td><td>火运</td><td>心小肠</td></tr></table></div></div>
+</div>
+
+</main>
+<script>
+// 汉代计量换算：1两=5克，1斤=16两=80克，1升=15克，1铢≈0.21克
+// 枚/个：大枣1枚≈2.5克，杏仁1个≈0.65克，栀子1枚≈0.5克
+// 鸡子大≈40克，一钱匕≈1.5~2克，等分≈2~3克
+
+const DATA = {
+meridians:[
+{name:"太阳",desc:"表证·初期",color:"太阳"},
+{name:"阳明",desc:"里热·极期",color:"阳明"},
+{name:"少阳",desc:"半表半里",color:"少阳"},
+{name:"太阴",desc:"脾虚寒",color:"太阴"},
+{name:"少阴",desc:"心肾阳衰",color:"少阴"},
+{name:"厥阴",desc:"寒热错杂",color:"厥阴"},
+{name:"金匮·痰饮",desc:"痰饮停聚",color:"金匮"},
+{name:"金匮·水气",desc:"水气泛溢",color:"金匮"},
+{name:"金匮·黄疸",desc:"湿热发黄",color:"金匮"},
+{name:"金匮·胸痹",desc:"胸阳痹阻",color:"金匮"},
+{name:"金匮·血痹",desc:"血行涩滞",color:"金匮"},
+{name:"金匮·虚劳",desc:"气血阴阳虚损",color:"金匮"},
+{name:"金匮·奔豚",desc:"冲气上逆",color:"金匮"},
+{name:"金匮·肺痿",desc:"肺气虚冷",color:"金匮"},
+{name:"金匮·肺痈",desc:"热毒壅肺",color:"金匮"},
+{name:"金匮·呕吐",desc:"胃虚气逆",color:"金匮"},
+{name:"金匮·妇人",desc:"妇人杂病",color:"金匮"},
+{name:"金匮·寒疝",desc:"血虚寒凝",color:"金匮"},
+{name:"金匮·百合",desc:"心肺阴虚",color:"金匮"},
+{name:"金匮·疮痈",desc:"热毒蕴结",color:"金匮"},
+{name:"金匮·消渴",desc:"肾阳不足",color:"金匮"}
+],
+
+syndromes:[
+{id:"太阳中风证",meridian:"太阳",formula:"桂枝汤",article:"辨太阳病脉证并治上·第12条",main:["发热（翕翕发热）","汗出","恶风","脉浮缓"],secondary:["鼻鸣","干呕","头痛","项强"],mechanism:"风邪袭表，卫强营弱，营卫不和。",key:"发热、汗出、恶风、脉浮缓",differentiate:[["太阳伤寒证","有汗 vs 无汗"],["温病","表虚 vs 里热"]],variants:[["兼项背强几几","太阳中风兼经输不利证","桂枝加葛根汤"],["兼喘","太阳中风兼喘证","桂枝加厚朴杏子汤"],["发汗太过阳虚","太阳病发汗太过阳虚证","桂枝加附子汤"]],articles:[{text:"太阳中风，阳浮而阴弱，阳浮者热自发，阴弱者汗自出，啬啬恶寒，淅淅恶风，翕翕发热，鼻鸣干呕者，桂枝汤主之。",source:"辨太阳病脉证并治上·第12条"},{text:"太阳病，头痛，发热，汗出，恶风者，桂枝汤主之。",source:"辨太阳病脉证并治上·第13条"}]},
+{id:"太阳伤寒证",meridian:"太阳",formula:"麻黄汤",article:"辨太阳病脉证并治上·第3条",main:["恶寒","发热","无汗","脉浮紧"],secondary:["头痛","身痛","腰痛","骨节疼痛","喘","呕逆"],mechanism:"寒邪束表，卫阳被遏，营阴郁滞。",key:"恶寒、发热、无汗、身疼痛、脉浮紧",differentiate:[["太阳中风证","无汗 vs 有汗"],["太阳伤寒兼里热证","无烦躁 vs 有烦躁"]],variants:[["兼项背强几几","太阳伤寒兼经输不利证","葛根汤"],["兼里热烦躁","太阳伤寒兼里热证","大青龙汤"],["兼水饮","外寒内饮证","小青龙汤"]],articles:[{text:"太阳病，或已发热，或未发热，必恶寒，体痛，呕逆，脉阴阳俱紧者，名为伤寒。",source:"辨太阳病脉证并治上·第3条"},{text:"太阳病，头痛发热，身疼腰痛，骨节疼痛，恶风，无汗而喘者，麻黄汤主之。",source:"辨太阳病脉证并治中·第35条"}]},
+{id:"太阳蓄水证",meridian:"太阳",formula:"五苓散",article:"辨太阳病脉证并治下·第71条",main:["小便不利","消渴","微热","脉浮"],secondary:["水入则吐","心下痞"],mechanism:"太阳表邪不解，随经入腑，膀胱气化不利，水停下焦。",key:"小便不利 + 烦渴欲饮 + 微热 + 脉浮",differentiate:[["胃中干燥","渴欲饮水，小便正常"]],variants:[],articles:[{text:"太阳病，发汗后，大汗出，胃中干，烦躁不得眠，欲得饮水者，少少与饮之，令胃气和则愈。若脉浮，小便不利，微热消渴者，五苓散主之。",source:"辨太阳病脉证并治下·第71条"},{text:"中风发热，六七日不解而烦，有表里证，渴欲饮水，水入则吐者，名曰水逆，五苓散主之。",source:"辨太阳病脉证并治下·第74条"}]},
+{id:"太阳蓄血轻证",meridian:"太阳",formula:"桃核承气汤",article:"辨太阳病脉证并治下·第103条",main:["少腹急结","其人如狂","小便自利"],secondary:["发热","血自下"],mechanism:"太阳表邪化热入里，与瘀血结于下焦，病势较轻。",key:"少腹急结 + 如狂 + 小便自利",differentiate:[["太阳蓄血重证","少腹急结 vs 少腹硬满"],["太阳蓄水证","小便自利 vs 小便不利"]],variants:[],articles:[{text:"太阳病不解，热结膀胱，其人如狂，血自下，下者愈。其外不解者，尚未可攻，当先解其外；外解已，但少腹急结者，乃可攻之，宜桃核承气汤。",source:"辨太阳病脉证并治下·第103条"}]},
+{id:"太阳蓄血重证",meridian:"太阳",formula:"抵当汤",article:"辨太阳病脉证并治下·第106条",main:["少腹硬满","其人发狂","小便自利","脉微而沉"],secondary:["身黄","脉沉结"],mechanism:"太阳表邪随经入里，瘀热互结于下焦，病势深重。",key:"少腹硬满 + 发狂 + 小便自利 + 脉沉",differentiate:[["太阳蓄血轻证","少腹硬满 vs 少腹急结"],["太阳蓄水证","小便自利 vs 小便不利"]],variants:[],articles:[{text:"太阳病六七日，表证仍在，脉微而沉，反不结胸，其人发狂者，以热在下焦，少腹当硬满，小便自利者，下血乃愈。所以然者，以太阳随经，瘀热在里故也，抵当汤主之。",source:"辨太阳病脉证并治下·第106条"}]},
+{id:"太阳伤寒兼里热证",meridian:"太阳",formula:"大青龙汤",article:"辨太阳病脉证并治中·第38条",main:["发热恶寒","身疼痛","无汗","烦躁","脉浮紧"],secondary:[],mechanism:"风寒束表，阳郁化热，表寒里热。",key:"伤寒表实证 + 烦躁（里热标志）",differentiate:[],variants:[],articles:[{text:"太阳中风，脉浮紧，发热恶寒，身疼痛，不汗出而烦躁者，大青龙汤主之。若脉微弱，汗出恶风者，不可服之。服之则厥逆，筋惕肉瞤，此为逆也。",source:"辨太阳病脉证并治中·第38条"}]},
+{id:"外寒内饮证",meridian:"太阳",formula:"小青龙汤",article:"辨太阳病脉证并治中·第40条",main:["恶寒发热","无汗","咳","喘","干呕"],secondary:["渴","下利","噎","小便不利、少腹满"],mechanism:"风寒外束，水饮内停。外寒内饮，相互搏结。",key:"表寒证 + 咳喘 + 心下有水气",differentiate:[],variants:[],articles:[{text:"伤寒表不解，心下有水气，干呕发热而咳，或渴，或利，或噎，或小便不利、少腹满，或喘者，小青龙汤主之。",source:"辨太阳病脉证并治中·第40条"}]},
+{id:"大结胸证",meridian:"太阳",formula:"大陷胸汤",article:"辨太阳病脉证并治下·第134条",main:["心下痛","按之石硬","脉沉而紧"],secondary:["短气","躁烦","心中懊憹","膈内拒痛"],mechanism:"表证误下，邪热内陷，与水饮互结于胸膈心下。",key:"心下痛 + 按之石硬 + 脉沉紧",differentiate:[],variants:[],articles:[{text:"伤寒六七日，结胸热实，脉沉而紧，心下痛，按之石硬者，大陷胸汤主之。",source:"辨太阳病脉证并治下·第135条"}]},
+{id:"小结胸证",meridian:"太阳",formula:"小陷胸汤",article:"辨太阳病脉证并治下·第138条",main:["正在心下","按之则痛","脉浮滑"],secondary:[],mechanism:"痰热互结于心下，病位局限，病势较轻。",key:"正在心下 + 按之则痛 + 脉浮滑",differentiate:[["大结胸证","按之则痛 vs 不按亦痛"]],variants:[],articles:[{text:"小结胸病，正在心下，按之则痛，脉浮滑者，小陷胸汤主之。",source:"辨太阳病脉证并治下·第138条"}]},
+{id:"痞证",meridian:"太阳",formula:"半夏泻心汤",article:"辨太阳病脉证并治下·第149条",main:["心下痞","按之濡"],secondary:["呕","肠鸣","下利"],mechanism:"表证误下，脾胃受损，寒热错杂，气机痞塞。",key:"心下满而不痛（区别于结胸的心下硬痛）",differentiate:[["大结胸证","满而不痛 vs 硬痛拒按"],["小结胸证","满而不痛 vs 按之则痛"]],variants:[],articles:[{text:"但满而不痛者，此为痞，柴胡不中与之，宜半夏泻心汤。",source:"辨太阳病脉证并治下·第149条"}]},
+{id:"太阳中风兼经输不利证",meridian:"太阳",formula:"桂枝加葛根汤",article:"辨太阳病脉证并治上·第14条",main:["项背强几几","汗出","恶风"],secondary:[],mechanism:"太阳中风，经气不利，津液不能上濡筋脉。",key:"项背强几几 + 汗出 + 恶风",differentiate:[["太阳伤寒兼经输不利证","有汗 vs 无汗"]],variants:[],articles:[{text:"太阳病，项背强几几，反汗出恶风者，桂枝加葛根汤主之。",source:"辨太阳病脉证并治上·第14条"}]},
+{id:"太阳伤寒兼经输不利证",meridian:"太阳",formula:"葛根汤",article:"辨太阳病脉证并治中·第31条",main:["项背强几几","无汗","恶风"],secondary:[],mechanism:"风寒束表，经气不利，津液不布，筋脉失养。",key:"项背强几几 + 无汗 + 恶风",differentiate:[["太阳中风兼经输不利证","无汗 vs 有汗"]],variants:[],articles:[{text:"太阳病，项背强几几，无汗恶风者，葛根汤主之。",source:"辨太阳病脉证并治中·第31条"}]},
+{id:"太阳中风兼喘证",meridian:"太阳",formula:"桂枝加厚朴杏子汤",article:"辨太阳病脉证并治上·第18条",main:["太阳中风证主证","喘"],secondary:[],mechanism:"太阳中风，肺气不利。或素有喘疾，复感风邪。",key:"中风证 + 喘",differentiate:[],variants:[],articles:[{text:"喘家，作桂枝汤，加厚朴、杏子佳。",source:"辨太阳病脉证并治上·第18条"}]},
+{id:"太阳病发汗太过阳虚证",meridian:"太阳",formula:"桂枝加附子汤",article:"辨太阳病脉证并治上·第20条",main:["汗漏不止","恶风","小便难","四肢微急，难以屈伸"],secondary:[],mechanism:"发汗太过，阳气受损，卫阳不固。",key:"汗漏不止 + 恶风 + 小便难 + 四肢拘急",differentiate:[],variants:[],articles:[{text:"太阳病，发汗，遂漏不止，其人恶风，小便难，四肢微急，难以屈伸者，桂枝加附子汤主之。",source:"辨太阳病脉证并治上·第20条"}]},
+{id:"太阳病误下致喘证",meridian:"太阳",formula:"桂枝加厚朴杏子汤",article:"辨太阳病脉证并治中·第43条",main:["微喘","表证未解"],secondary:[],mechanism:"太阳病误用下法，表邪未解，肺气上逆。",key:"下后微喘 + 表未解",differentiate:[],variants:[],articles:[{text:"太阳病，下之微喘者，表未解故也，桂枝加厚朴杏子汤主之。",source:"辨太阳病脉证并治中·第43条"}]},
+{id:"协热下利证",meridian:"太阳",formula:"葛根黄芩黄连汤",article:"辨太阳病脉证并治中·第34条",main:["下利不止","脉促","喘而汗出"],secondary:[],mechanism:"表证误下，里热下迫大肠。",key:"误下后下利不止 + 喘而汗出",differentiate:[],variants:[],articles:[{text:"太阳病，桂枝证，医反下之，利遂不止，脉促者，表未解也；喘而汗出者，葛根黄芩黄连汤主之。",source:"辨太阳病脉证并治中·第34条"}]},
+{id:"悬饮证",meridian:"太阳",formula:"十枣汤",article:"辨太阳病脉证并治下·第152条",main:["心下痞硬满","引胁下痛","干呕","短气","汗出不恶寒"],secondary:[],mechanism:"水饮停聚胸胁，气机受阻。",key:"心下痞硬满 + 引胁下痛 + 短气",differentiate:[],variants:[],articles:[{text:"太阳中风，下利呕逆，表解者，乃可攻之。其人汗出，发作有时，头痛，心下痞硬满，引胁下痛，干呕短气，汗出不恶寒者，此表解里未和也，十枣汤主之。",source:"辨太阳病脉证并治下·第152条"}]},
+{id:"阳明经证",meridian:"阳明",formula:"白虎汤",article:"辨阳明病脉证并治·第219条",main:["大热（蒸蒸发热）","大汗出","大渴","脉洪大"],secondary:["不恶寒，反恶热","身重","面垢"],mechanism:"阳明气分热盛，里热外蒸。",key:"四大症：大热 + 大汗 + 大渴 + 脉洪大",differentiate:[["太阳中风证","不恶寒反恶热"],["太阳伤寒证","大热 vs 发热恶寒"]],variants:[],articles:[{text:"阳明病外证云何？答曰：身热，汗自出，不恶寒，反恶热也。",source:"辨阳明病脉证并治·第182条"},{text:"三阳合病，腹满身重，难以转侧，口不仁面垢，谵语遗尿。若自汗出者，白虎汤主之。",source:"辨阳明病脉证并治·第219条"}]},
+{id:"阳明腑实证",meridian:"阳明",formula:"大承气汤",article:"辨阳明病脉证并治·第208条",main:["潮热","谵语","腹满痛","大便硬/燥屎","手足濈然汗出"],secondary:["不恶寒","喘","短气","不能食"],mechanism:"阳明热结，燥屎内结，腑气不通。",key:"潮热 + 谵语 + 腹满痛 + 大便硬",differentiate:[],variants:[],articles:[{text:"阳明病，脉迟，虽汗出不恶寒者，其身必重，短气腹满而喘，有潮热者，此外欲解，可攻里也。手足濈然汗出者，此大便已硬也，大承气汤主之。",source:"辨阳明病脉证并治·第208条"},{text:"阳明病，谵语发潮热，脉滑而疾者，小承气汤主之。",source:"辨阳明病脉证并治·第214条"}]},
+{id:"热扰胸膈证",meridian:"阳明",formula:"栀子豉汤",article:"辨阳明病脉证并治·第221条",main:["心中懊憹","舌上胎","烦躁不得眠"],secondary:[],mechanism:"阳明热邪郁于胸膈，热扰心神。",key:"心中懊憹 + 舌上胎",differentiate:[],variants:[],articles:[{text:"阳明病……若下之，则胃中空虚，客气动膈，心中懊憹，舌上胎者，栀子豉汤主之。",source:"辨阳明病脉证并治·第221条"}]},
+{id:"少阳病证",meridian:"少阳",formula:"小柴胡汤",article:"辨少阳病脉证并治·第263条",main:["往来寒热","胸胁苦满","嘿嘿不欲饮食","心烦喜呕"],secondary:["口苦","咽干","目眩","胸中烦而不呕","或渴"],mechanism:"邪犯少阳，枢机不利，正邪分争于半表半里。",key:"往来寒热 + 胸胁苦满 + 心烦喜呕 + 口苦咽干目眩",differentiate:[["太阳病","往来寒热 vs 发热恶寒"],["阳明病","往来寒热 vs 但热不寒"]],variants:[],articles:[{text:"少阳之为病，口苦，咽干，目眩也。",source:"辨少阳病脉证并治·第263条"},{text:"伤寒五六日，中风，往来寒热，胸胁苦满，嘿嘿不欲饮食，心烦喜呕，或胸中烦而不呕，或渴，或腹中痛，或胁下痞硬，或心下悸、小便不利，或不渴、身有微热，或咳者，小柴胡汤主之。",source:"辨少阳病脉证并治·第96条"}]},
+{id:"太阴病证",meridian:"太阴",formula:"理中丸",article:"辨太阴病脉证并治·第273条",main:["腹满而吐","食不下","下利日益甚","时腹自痛"],secondary:["口不渴","手足温"],mechanism:"脾阳虚弱，寒湿内盛。",key:"腹满而吐 + 食不下 + 下利 + 时腹自痛",differentiate:[["少阴病证","仅脾阳虚 vs 全身阳衰"],["阳明腑实证","虚寒 vs 实热"]],variants:[],articles:[{text:"太阴之为病，腹满而吐，食不下，自利益甚，时腹自痛。若下之，必胸下结硬。",source:"辨太阴病脉证并治·第273条"}]},
+{id:"太阴腹痛证",meridian:"太阴",formula:"桂枝加芍药汤",article:"辨太阴病脉证并治·第279条",main:["腹满时痛"],secondary:["大实痛"],mechanism:"太阳误下，邪陷太阴，脾络不和。",key:"腹满时痛（轻）或 大实痛（重）",differentiate:[],variants:[],articles:[{text:"本太阳病，医反下之，因尔腹满时痛者，属太阴也，桂枝加芍药汤主之；大实痛者，桂枝加大黄汤主之。",source:"辨太阴病脉证并治·第279条"}]},
+{id:"少阴病证",meridian:"少阴",formula:"四逆汤",article:"辨少阴病脉证并治·第281条",main:["脉微细","但欲寐","四肢厥逆","下利清谷"],secondary:["恶寒踡卧","不渴","小便色白"],mechanism:"心肾阳衰，阴寒内盛。",key:"脉微细 + 但欲寐 + 四肢厥逆",differentiate:[["太阴病证","全身阳衰 vs 仅脾阳虚"]],variants:[],articles:[{text:"少阴之为病，脉微细，但欲寐也。",source:"辨少阴病脉证并治·第281条"}]},
+{id:"阴盛格阳证",meridian:"少阴",formula:"通脉四逆汤",article:"辨少阴病脉证并治·第317条",main:["下利清谷","手足厥逆","脉微欲绝","身反不恶寒","面色赤"],secondary:[],mechanism:"阴寒内盛，虚阳被格拒于外。",key:"内真寒 + 外假热（身反不恶寒、面色赤）",differentiate:[["少阴病证","外假热 vs 无热"]],variants:[],articles:[{text:"少阴病，下利清谷，里寒外热，手足厥逆，脉微欲绝，身反不恶寒，其人面色赤，或腹痛，或干呕，或咽痛，或利止脉不出者，通脉四逆汤主之。",source:"辨少阴病脉证并治·第317条"}]},
+{id:"少阴兼表证",meridian:"少阴",formula:"麻黄细辛附子汤",article:"辨少阴病脉证并治·第301条",main:["发热","脉沉"],secondary:[],mechanism:"少阴阳虚，复感外邪。",key:"反发热 + 脉沉",differentiate:[],variants:[],articles:[{text:"少阴病，始得之，反发热，脉沉者，麻黄细辛附子汤主之。",source:"辨少阴病脉证并治·第301条"}]},
+{id:"少阴阴虚火旺证",meridian:"少阴",formula:"黄连阿胶汤",article:"辨少阴病脉证并治·第303条",main:["心中烦","不得卧"],secondary:[],mechanism:"少阴肾水亏虚，心火独亢，心肾不交。",key:"心烦 + 不得卧",differentiate:[["热扰胸膈证","心烦不得卧 vs 心中懊憹"]],variants:[],articles:[{text:"少阴病，得之二三日以上，心中烦，不得卧，黄连阿胶汤主之。",source:"辨少阴病脉证并治·第303条"}]},
+{id:"阳虚水泛证",meridian:"少阴",formula:"真武汤",article:"辨少阴病脉证并治·第316条",main:["腹痛","小便不利","四肢沉重疼痛","自下利"],secondary:["或咳","或呕"],mechanism:"少阴阳虚，水湿泛滥。",key:"腹痛 + 小便不利 + 四肢沉重 + 下利",differentiate:[],variants:[],articles:[{text:"少阴病，二三日不已，至四五日，腹痛，小便不利，四肢沉重疼痛，自下利者，此为有水气。其人或咳，或小便利，或下利，或呕者，真武汤主之。",source:"辨少阴病脉证并治·第316条"}]},
+{id:"厥阴病证",meridian:"厥阴",formula:"乌梅丸",article:"辨厥阴病脉证并治·第326条",main:["消渴","气上撞心","心中疼热","饥而不欲食","食则吐蛔"],secondary:[],mechanism:"上热下寒，寒热错杂，厥热胜复。",key:"消渴 + 气上撞心 + 心中疼热 + 饥不欲食",differentiate:[["阳明经证","大渴引饮 vs 消渴+上热下寒"],["太阳蓄水证","大渴+小便不利 vs 消渴+上热下寒"]],variants:[],articles:[{text:"厥阴之为病，消渴，气上撞心，心中疼热，饥而不欲食，食则吐蛔，下之利不止。",source:"辨厥阴病脉证并治·第326条"}]},
+{id:"蛔厥证",meridian:"厥阴",formula:"乌梅丸",article:"辨厥阴病脉证并治·第338条",main:["手足厥冷","其人当吐蛔","静而复时烦","得食而呕又烦"],secondary:[],mechanism:"脏寒蛔动，上扰胸膈。",key:"时烦时止 + 吐蛔 + 得食而烦",differentiate:[["藏厥","时烦时止 vs 躁无暂安时"],["热厥证","脏寒蛔动 vs 里热郁闭"]],variants:[],articles:[{text:"蛔厥者，其人当吐蛔。今病者静，而复时烦者，此为藏寒。蛔上入其膈，故烦，须臾复止。得食而呕，又烦者，蛔闻食臭出。其人当自吐蛔。蛔厥者，乌梅丸主之。",source:"辨厥阴病脉证并治·第338条"}]},
+{id:"热厥证",meridian:"厥阴",formula:"白虎汤",article:"辨厥阴病脉证并治·第350条",main:["手足厥逆","脉滑","里有热"],secondary:[],mechanism:"热邪内郁，阳气不能外达四肢。",key:"厥逆 + 脉滑（热象）",differentiate:[["寒厥","脉滑 vs 脉微细"],["血虚寒凝证","脉滑 vs 脉细欲绝"]],variants:[],articles:[{text:"伤寒脉滑而厥者，里有热，白虎汤主之。",source:"辨厥阴病脉证并治·第350条"}]},
+{id:"血虚寒凝证",meridian:"厥阴",formula:"当归四逆汤",article:"辨厥阴病脉证并治·第351条",main:["手足厥寒","脉细欲绝"],secondary:[],mechanism:"血虚不能温养四肢，寒邪凝滞经脉。",key:"手足厥寒 + 脉细欲绝",differentiate:[["热厥证","脉细欲绝 vs 脉滑"],["少阴病证","脉细欲绝 vs 脉微细"]],variants:[],articles:[{text:"手足厥寒，脉细欲绝者，当归四逆汤主之。",source:"辨厥阴病脉证并治·第351条"}]},
+{id:"太阳少阳并病证",meridian:"少阳",formula:"柴胡桂枝汤",article:"辨少阳病脉证并治·第146条",main:["发热微恶寒","支节烦疼","微呕","心下支结"],secondary:[],mechanism:"太阳表证未解，邪入少阳。",key:"表证（发热恶寒）+ 少阳证（微呕、心下支结）",differentiate:[],variants:[],articles:[{text:"伤寒六七日，发热微恶寒，支节烦疼，微呕，心下支结，外证未去者，柴胡桂枝汤主之。",source:"辨少阳病脉证并治·第146条"}]},
+{id:"少阳兼水饮证",meridian:"少阳",formula:"柴胡桂枝干姜汤",article:"辨少阳病脉证并治·第147条",main:["胸胁满微结","小便不利","渴而不呕","但头汗出","往来寒热","心烦"],secondary:[],mechanism:"少阳枢机不利，兼水饮内停。",key:"少阳证 + 小便不利 + 渴",differentiate:[],variants:[],articles:[{text:"伤寒五六日，已发汗而复下之，胸胁满微结，小便不利，渴而不呕，但头汗出，往来寒热，心烦者，此为未解也，柴胡桂枝干姜汤主之。",source:"辨少阳病脉证并治·第147条"}]},
+{id:"上热下寒证",meridian:"少阳",formula:"黄连汤",article:"辨少阳病脉证并治·第173条",main:["腹中痛","欲呕吐"],secondary:[],mechanism:"胸中有热，胃中有寒，上下不和。",key:"腹中痛 + 欲呕吐（上热下寒并见）",differentiate:[],variants:[],articles:[{text:"伤寒胸中有热，胃中有邪气，腹中痛，欲呕吐者，黄连汤主之。",source:"辨少阳病脉证并治·第173条"}]}
+,
+{id:"痰饮病",meridian:"金匮·痰饮",formula:"苓桂术甘汤",article:"痰饮咳嗽病脉证并治第十二",main:["心下逆满","气上冲胸","头眩","心悸","短气"],secondary:["咳嗽","呕恶"],mechanism:"脾虚水停，饮停心下。",key:"心下逆满 + 气上冲胸 + 头眩 + 心悸",differentiate:[["水气病","饮停心下 vs 水泛肌肤"],["外寒内饮证","无表证 vs 有表证"]],variants:[],articles:[{text:"心下有痰饮，胸胁支满，目眩，苓桂术甘汤主之。",source:"痰饮咳嗽病脉证并治第十二"},{text:"夫短气有微饮，当从小便去之，苓桂术甘汤主之。",source:"痰饮咳嗽病脉证并治第十二"}]},
+{id:"支饮",meridian:"金匮·痰饮",formula:"小青龙汤",article:"痰饮咳嗽病脉证并治第十二",main:["咳逆倚息不得卧","短气","不得平卧"],secondary:["形如肿"],mechanism:"水饮停聚胸膈，肺气不利。",key:"咳逆倚息不得卧",differentiate:[["外寒内饮证","有表证 vs 无表证"]],variants:[],articles:[{text:"咳逆倚息不得卧，小青龙汤主之。",source:"痰饮咳嗽病脉证并治第十二"}]},
+{id:"悬饮（金匮）",meridian:"金匮·痰饮",formula:"十枣汤",article:"痰饮咳嗽病脉证并治第十二",main:["饮后水流在胁下","咳唾引痛"],secondary:[],mechanism:"饮停胁下。",key:"咳唾引痛",differentiate:[],variants:[],articles:[{text:"饮后水流在胁下，咳唾引痛，谓之悬饮。",source:"痰饮咳嗽病脉证并治第十二"}]},
+{id:"水气病",meridian:"金匮·水气",formula:"防己黄芪汤",article:"水气病脉证并治第十四",main:["风水","脉浮","身重","汗出恶风"],secondary:[],mechanism:"表虚风水，水湿泛溢肌肤。",key:"脉浮 + 身重 + 汗出恶风",differentiate:[["痰饮病","水泛肌肤 vs 饮停脏腑"]],variants:[],articles:[{text:"风水，脉浮身重，汗出恶风者，防己黄芪汤主之。",source:"水气病脉证并治第十四"}]},
+{id:"皮水",meridian:"金匮·水气",formula:"越婢加术汤",article:"水气病脉证并治第十四",main:["四肢肿","水气在皮肤中","聂聂动"],secondary:[],mechanism:"水气停留皮肤之间。",key:"四肢肿，水气在皮肤中",differentiate:[],variants:[],articles:[{text:"里水者，一身面目黄肿，其脉沉，小便不利，故令病水。",source:"水气病脉证并治第十四"}]},
+{id:"谷疸",meridian:"金匮·黄疸",formula:"茵陈蒿汤",article:"黄疸病脉证并治第十五",main:["身黄如橘子色","小便不利","腹微满","但头汗出"],secondary:["渴饮水浆","身黄"],mechanism:"湿热蕴结中焦，胆汁外溢。",key:"身黄如橘子色 + 小便不利 + 腹微满",differentiate:[["黄疸（寒湿）","鲜明如橘 vs 晦暗如烟熏"]],variants:[],articles:[{text:"谷疸之为病，寒热不食，食即头眩，心胸不安，久久发黄为谷疸，茵陈蒿汤主之。",source:"黄疸病脉证并治第十五"}]},
+{id:"黄疸（寒湿）",meridian:"金匮·黄疸",formula:"茵陈五苓散",article:"黄疸病脉证并治第十五",main:["身黄晦暗","小便不利"],secondary:[],mechanism:"寒湿内阻，胆汁不循常道。",key:"身黄晦暗",differentiate:[["谷疸","晦暗如烟熏 vs 鲜明如橘"]],variants:[],articles:[{text:"黄疸病，茵陈五苓散主之。",source:"黄疸病脉证并治第十五"}]},
+{id:"胸痹",meridian:"金匮·胸痹",formula:"栝楼薤白白酒汤",article:"胸痹心痛短气病脉证治第九",main:["胸背痛","短气","喘息咳唾"],secondary:[],mechanism:"胸阳不振，痰浊痹阻。",key:"胸背痛 + 短气",differentiate:[["心痛","胸痛 vs 心下痛"]],variants:[],articles:[{text:"胸痹之病，喘息咳唾，胸背痛，短气，寸口脉沉而迟，关上小紧数，栝楼薤白白酒汤主之。",source:"胸痹心痛短气病脉证治第九"}]},
+{id:"胸痹重症",meridian:"金匮·胸痹",formula:"栝楼薤白半夏汤",article:"胸痹心痛短气病脉证治第九",main:["胸痹不得卧","心痛彻背"],secondary:[],mechanism:"痰浊壅盛，胸阳痹阻。",key:"胸痹不得卧 + 心痛彻背",differentiate:[],variants:[],articles:[{text:"胸痹不得卧，心痛彻背者，栝楼薤白半夏汤主之。",source:"胸痹心痛短气病脉证治第九"}]},
+{id:"血痹",meridian:"金匮·血痹",formula:"黄芪桂枝五物汤",article:"血痹虚劳病脉证并治第六",main:["身体不仁","如风痹状","脉微涩"],secondary:[],mechanism:"气血不足，风寒侵袭，血行涩滞。",key:"身体不仁",differentiate:[],variants:[],articles:[{text:"血痹阴阳俱微……外证身体不仁，如风痹状，黄芪桂枝五物汤主之。",source:"血痹虚劳病脉证并治第六"}]},
+{id:"虚劳",meridian:"金匮·虚劳",formula:"小建中汤",article:"血痹虚劳病脉证并治第六",main:["虚劳里急","悸","衄","腹中痛","梦失精","四肢酸疼","手足烦热","咽干口燥"],secondary:[],mechanism:"阴阳两虚，脾胃虚弱。",key:"虚劳里急 + 腹中痛",differentiate:[],variants:[],articles:[{text:"虚劳里急，悸，衄，腹中痛，梦失精，四肢酸疼，手足烦热，咽干口燥，小建中汤主之。",source:"血痹虚劳病脉证并治第六"}]},
+{id:"虚劳失眠",meridian:"金匮·虚劳",formula:"酸枣仁汤",article:"血痹虚劳病脉证并治第六",main:["虚烦不得眠"],secondary:[],mechanism:"肝血不足，虚热内扰。",key:"虚烦不得眠",differentiate:[["少阴阴虚火旺证","肝血虚 vs 肾阴虚"]],variants:[],articles:[{text:"虚劳虚烦不得眠，酸枣仁汤主之。",source:"血痹虚劳病脉证并治第六"}]},
+{id:"肾气虚",meridian:"金匮·虚劳",formula:"肾气丸",article:"血痹虚劳病脉证并治第六",main:["虚劳腰痛","少腹拘急","小便不利"],secondary:[],mechanism:"肾气不足，膀胱气化不利。",key:"虚劳腰痛 + 少腹拘急 + 小便不利",differentiate:[["阳虚水泛证","肾气虚 vs 阳虚水泛"]],variants:[],articles:[{text:"虚劳腰痛，少腹拘急，小便不利者，八味肾气丸主之。",source:"血痹虚劳病脉证并治第六"}]},
+{id:"奔豚气",meridian:"金匮·奔豚",formula:"奔豚汤",article:"奔豚气病脉证治第八",main:["气从少腹上冲咽喉","发作欲死","复还止"],secondary:["腹痛","往来寒热"],mechanism:"肝气上逆，冲气上冲。",key:"气从少腹上冲咽喉",differentiate:[],variants:[],articles:[{text:"奔豚病，从少腹起，上冲咽喉，发作欲死，复还止，皆从惊恐得之。",source:"奔豚气病脉证治第八"},{text:"奔豚气上冲胸，腹痛，往来寒热，奔豚汤主之。",source:"奔豚气病脉证治第八"}]},
+{id:"肺痿",meridian:"金匮·肺痿",formula:"甘草干姜汤",article:"肺痿肺痈咳嗽上气病脉证治第七",main:["咳唾涎沫","其人数唾","小便数"],secondary:["不渴","必遗尿"],mechanism:"肺气虚冷，津液不布。",key:"咳唾涎沫 + 小便数",differentiate:[["肺痈","咳唾涎沫 vs 咳吐脓血"]],variants:[],articles:[{text:"肺痿吐涎沫而不咳者，其人不渴，必遗尿，小便数。所以然者，以上虚不能制下故也。此为肺中冷，必眩，多涎唾，甘草干姜汤以温之。",source:"肺痿肺痈咳嗽上气病脉证治第七"}]},
+{id:"肺痈",meridian:"金匮·肺痈",formula:"千金苇茎汤",article:"肺痿肺痈咳嗽上气病脉证治第七",main:["咳吐脓血","胸中满痛"],secondary:["口干喘满","咽燥不渴"],mechanism:"热毒壅肺，血败肉腐。",key:"咳吐脓血 + 胸中满痛",differentiate:[],variants:[],articles:[{text:"咳而胸满，振寒脉数，咽干不渴，时出浊唾腥臭，久久吐脓如米粥者，为肺痈。",source:"肺痿肺痈咳嗽上气病脉证治第七"}]},
+{id:"胃反呕吐",meridian:"金匮·呕吐",formula:"大半夏汤",article:"呕吐哕下利病脉证治第十七",main:["朝食暮吐","暮食朝吐","宿谷不化"],secondary:[],mechanism:"胃虚气逆。",key:"朝食暮吐，暮食朝吐",differentiate:[],variants:[],articles:[{text:"胃反呕吐者，大半夏汤主之。",source:"呕吐哕下利病脉证治第十七"}]},
+{id:"脏躁",meridian:"金匮·妇人杂病",formula:"甘麦大枣汤",article:"妇人杂病脉证并治第二十二",main:["喜悲伤欲哭","象如神灵所作","数欠伸"],secondary:[],mechanism:"心脾两虚，脏阴不足。",key:"喜悲伤欲哭 + 象如神灵所作 + 数欠伸",differentiate:[],variants:[],articles:[{text:"妇人脏躁，喜悲伤欲哭，象如神灵所作，数欠伸，甘麦大枣汤主之。",source:"妇人杂病脉证并治第二十二"}]},
+{id:"梅核气",meridian:"金匮·妇人杂病",formula:"半夏厚朴汤",article:"妇人杂病脉证并治第二十二",main:["咽中如有炙脔"],secondary:[],mechanism:"气郁痰凝，结于咽喉。",key:"咽中如有炙脔",differentiate:[],variants:[],articles:[{text:"妇人咽中如有炙脔，半夏厚朴汤主之。",source:"妇人杂病脉证并治第二十二"}]},
+{id:"妇人癥病",meridian:"金匮·妇人妊娠",formula:"桂枝茯苓丸",article:"妇人妊娠病脉证并治第二十",main:["宿有癥病","漏下"],secondary:["胎动在上"],mechanism:"瘀血内阻，癥积不去。",key:"宿有癥病 + 漏下",differentiate:[],variants:[],articles:[{text:"妇人宿有癥病，经断未及三月，而得漏下不止，胎动在脐上者，为癥痼害。……当下其癥，桂枝茯苓丸主之。",source:"妇人妊娠病脉证并治第二十"}]},
+{id:"妇人腹痛",meridian:"金匮·妇人妊娠",formula:"当归芍药散",article:"妇人妊娠病脉证并治第二十",main:["腹中疞痛"],secondary:["小便不利"],mechanism:"肝脾不和，血虚湿阻。",key:"腹中疞痛",differentiate:[],variants:[],articles:[{text:"妇人怀娠，腹中疞痛，当归芍药散主之。",source:"妇人妊娠病脉证并治第二十"}]},
+{id:"冲任虚寒",meridian:"金匮·妇人杂病",formula:"温经汤",article:"妇人杂病脉证并治第二十二",main:["少腹里急","腹满","暮即发热","手掌烦热","唇口干燥"],secondary:["曾经半产","瘀血在少腹不去"],mechanism:"冲任虚寒，瘀血内停。",key:"少腹里急 + 暮即发热 + 手掌烦热 + 唇口干燥",differentiate:[],variants:[],articles:[{text:"问曰：妇人年五十所，病下利数十日不止，暮即发热，少腹里急，腹满，手掌烦热，唇口干燥，何也？……曾经半产，瘀血在少腹不去。……当以温经汤主之。",source:"妇人杂病脉证并治第二十二"}]},
+{id:"寒疝",meridian:"金匮·寒疝",formula:"当归生姜羊肉汤",article:"腹满寒疝宿食病脉证治第十",main:["寒疝腹中痛","及胁痛里急"],secondary:[],mechanism:"血虚寒凝，肝脉失养。",key:"寒疝腹中痛 + 胁痛里急",differentiate:[],variants:[],articles:[{text:"寒疝腹中痛，及胁痛里急者，当归生姜羊肉汤主之。",source:"腹满寒疝宿食病脉证治第十"}]},
+{id:"百合病",meridian:"金匮·百合",formula:"百合地黄汤",article:"百合狐惑阴阳毒病脉证治第三",main:["意欲食复不能食","常默默","欲卧不能卧","欲行不能行","饮食或有美时","或有不用闻食臭时","如寒无寒","如热无热","口苦","小便赤","脉微数"],secondary:[],mechanism:"心肺阴虚，百脉受病。",key:"意欲食复不能食 + 常默默 + 如寒无寒，如热无热",differentiate:[],variants:[],articles:[{text:"百合病者，百脉一宗，悉致其病也。意欲食复不能食，常默默，欲卧不能卧，欲行不能行，饮食或有美时，或有不用闻食臭时，如寒无寒，如热无热，口苦，小便赤，诸药不能治，得药则剧吐利，如有神灵者，身形如和，其脉微数。",source:"百合狐惑阴阳毒病脉证治第三"}]},
+{id:"肠痈",meridian:"金匮·疮痈",formula:"大黄牡丹汤",article:"疮痈肠痈浸淫病脉证并治第十八",main:["少腹肿痞","按之即痛如淋","小便自调","时时发热","自汗出","复恶寒"],secondary:[],mechanism:"热毒内结，瘀热壅滞肠中。",key:"少腹肿痞 + 按之即痛 + 时时发热",differentiate:[],variants:[],articles:[{text:"肠痈者，少腹肿痞，按之即痛如淋，小便自调，时时发热，自汗出，复恶寒。其脉迟紧者，脓未成，可下之，当有血。脉洪数者，脓已成，不可下也。大黄牡丹汤主之。",source:"疮痈肠痈浸淫病脉证并治第十八"}]},
+{id:"消渴（金匮）",meridian:"金匮·消渴",formula:"肾气丸",article:"消渴小便不利淋病脉证并治第十三",main:["男子消渴","小便反多","以饮一斗，小便一斗"],secondary:[],mechanism:"肾阳不足，不能蒸化津液。",key:"饮一斗，小便一斗",differentiate:[["厥阴病证","肾阳虚 vs 上热下寒"],["太阳蓄水证","小便多 vs 小便不利"]],variants:[],articles:[{text:"男子消渴，小便反多，以饮一斗，小便一斗，肾气丸主之。",source:"消渴小便不利淋病脉证并治第十三"}]}
+],
+
+formulas:[
+{id:"桂枝汤",alias:"阳旦汤",category:"解表",syndrome:"太阳中风证",
+ingredients:[["桂枝","三两（15g）","解肌发表"],["芍药","三两（15g）","敛阴和营"],["甘草","二两（10g）","调和诸药"],["生姜","三两（15g）","助桂枝解表"],["大枣","十二枚（约30g）","助芍药和营"]],
+method:"上五味，以水七升，微火煮取三升，去滓，适寒温，服一升。服已须臾，啜热稀粥一升余，以助药力。温覆令一时许，遍身漐漐微似有汗者益佳。",
+action:"解肌发表，调和营卫。",formulaMeaning:"桂枝+芍药：一散一收，调和营卫；生姜助桂枝解表；大枣助芍药和营；甘草调和诸药。",
+contraindication:"表实无汗者禁用；温病初起禁用；酒客慎用。",variants:[["兼项背强几几","桂枝加葛根汤"],["兼喘","桂枝加厚朴杏子汤"],["发汗太过阳虚","桂枝加附子汤"],["兼腹痛","桂枝加芍药汤"]]},
+
+{id:"麻黄汤",alias:"",category:"解表",syndrome:"太阳伤寒证",
+ingredients:[["麻黄","三两（15g）","发汗解表，宣肺平喘"],["桂枝","二两（10g）","助麻黄发汗"],["杏仁","七十个（约45.5g）","降肺平喘"],["甘草","一两（5g）","调和诸药"]],
+method:"上四味，以水九升，先煮麻黄减二升，去上沫，内诸药，煮取二升半，去滓，温服八合。覆取微似汗，不须啜粥。",
+action:"发汗解表，宣肺平喘。",formulaMeaning:"麻黄发汗解表第一药；桂枝助麻黄发汗；杏仁降肺气止喘；甘草缓和麻桂峻烈。",
+contraindication:"表虚有汗者禁用；尺中脉迟者不可发汗；咽干、淋家、疮家、衄家、亡血家禁用。",variants:[]},
+
+{id:"葛根汤",alias:"",category:"解表",syndrome:"太阳伤寒兼经输不利证",
+ingredients:[["葛根","四两（20g）","升津舒筋"],["麻黄","三两（15g）","发汗解表"],["桂枝","二两（10g）","解肌"],["芍药","二两（10g）","和营"],["甘草","二两（10g）","调和"],["生姜","三两（15g）","助解表"],["大枣","十二枚（约30g）","和营"]],
+method:"",action:"发汗解表，升津舒筋。",formulaMeaning:"桂枝汤加麻黄、葛根。葛根为君，升津液、舒筋脉，治项背强几几。",
+contraindication:"",variants:[]},
+
+{id:"大青龙汤",alias:"",category:"解表",syndrome:"太阳伤寒兼里热证",
+ingredients:[["麻黄","六两（30g）","发汗解表"],["桂枝","二两（10g）","助麻黄解表"],["甘草","二两（10g）","调和"],["杏仁","四十个（约26g）","降肺"],["生姜","三两（15g）","助解表"],["大枣","十枚（约25g）","和营"],["石膏","如鸡子大（约40g）","清里热"]],
+method:"",action:"发汗解表，清热除烦。",formulaMeaning:"麻黄汤倍麻黄，加石膏、生姜、大枣。石膏清泄里热除烦躁。",
+contraindication:"脉微弱，汗出恶风者，不可服。服之则厥逆，筋惕肉瞤。",variants:[]},
+
+{id:"小青龙汤",alias:"",category:"解表",syndrome:"外寒内饮证",
+ingredients:[["麻黄","三两（15g）","发汗解表，宣肺平喘"],["芍药","三两（15g）","敛阴"],["五味子","半升（约7.5g）","敛肺止咳"],["干姜","三两（15g）","温化水饮"],["甘草","三两（15g）","调和"],["桂枝","三两（15g）","解表温阳"],["半夏","半升（约40g）","降逆化痰"],["细辛","三两（15g）","温肺化饮"]],
+method:"",action:"解表散寒，温肺化饮。",formulaMeaning:"麻黄+桂枝解表散寒；干姜+细辛+半夏温化水饮；五味子+芍药敛肺止咳，防发散太过。",
+contraindication:"",variants:[]},
+
+{id:"五苓散",alias:"",category:"利水",syndrome:"太阳蓄水证",
+ingredients:[["猪苓","十八铢（约3.8g）","利水渗湿"],["泽泻","一两六铢（约6.3g）","利水渗湿"],["白术","十八铢（约3.8g）","健脾燥湿"],["茯苓","十八铢（约3.8g）","利水渗湿"],["桂枝","半两（2.5g）","温阳化气"]],
+method:"上五味，捣为散，以白饮和服方寸匕，日三服。多饮暖水，汗出愈。",
+action:"利水渗湿，温阳化气。",formulaMeaning:"泽泻为君利水渗湿；猪苓、茯苓、白术健脾利湿；桂枝温阳化气，兼解表邪。",
+contraindication:"",variants:[]},
+
+{id:"大陷胸汤",alias:"",category:"泻下",syndrome:"大结胸证",
+ingredients:[["大黄","六两（30g）","泻热通便"],["芒硝","一升（15g）","软坚散结"],["甘遂","一钱匕（约1.5~2g）","逐水破结"]],
+method:"上三味，以水六升，先煮大黄取二升，去滓，内芒硝，煮一两沸，内甘遂末，温服一升。得快利，止后服。",
+action:"泻热逐水破结。",formulaMeaning:"甘遂逐水饮破结聚（君药）；大黄泻热通便；芒硝软坚散结。",
+contraindication:"",variants:[]},
+
+{id:"小陷胸汤",alias:"",category:"清热",syndrome:"小结胸证",
+ingredients:[["黄连","一两（5g）","清热燥湿"],["半夏","半升（约40g）","化痰散结"],["栝楼实","一枚大者（约50g）","清热化痰，宽胸散结"]],
+method:"上三味，以水六升，先煮栝楼取三升，去滓，内诸药，煮取二升，去滓，分温三服。",
+action:"清热化痰，宽胸散结。",formulaMeaning:"栝楼实清热化痰宽胸散结（君药）；黄连清热燥湿；半夏化痰散结。",
+contraindication:"",variants:[]},
+
+{id:"半夏泻心汤",alias:"",category:"和解",syndrome:"痞证",
+ingredients:[["半夏","半升（约40g）","降逆止呕，消痞"],["黄芩","三两（15g）","清热燥湿"],["干姜","三两（15g）","温中散寒"],["人参","三两（15g）","补中益气"],["黄连","一两（5g）","清热燥湿"],["大枣","十二枚（约30g）","补中"],["甘草","三两（15g）","调和诸药"]],
+method:"上七味，以水一斗，煮取六升，去滓，再煎取三升，温服一升，日三服。",
+action:"寒热平调，消痞散结。",formulaMeaning:"半夏+干姜辛开散结；黄芩+黄连苦降泄热；人参+大枣+甘草甘补中气。寒热并用，攻补兼施。",
+contraindication:"",variants:[]},
+
+{id:"桂枝加葛根汤",alias:"",category:"解表",syndrome:"太阳中风兼经输不利证",
+ingredients:[["葛根","四两（20g）","升津舒筋"],["桂枝","三两（15g）","解肌"],["芍药","三两（15g）","和营"],["甘草","二两（10g）","调和"],["生姜","三两（15g）","助解表"],["大枣","十二枚（约30g）","和营"]],
+method:"",action:"解肌发表，升津舒筋。",formulaMeaning:"桂枝汤加葛根。葛根升津液、濡筋脉，治项背强几几。",
+contraindication:"",variants:[]},
+
+{id:"桂枝加厚朴杏子汤",alias:"",category:"解表",syndrome:"太阳中风兼喘证",
+ingredients:[["桂枝","三两（15g）","解肌"],["芍药","三两（15g）","和营"],["甘草","二两（10g）","调和"],["生姜","三两（15g）","助解表"],["大枣","十二枚（约30g）","和营"],["厚朴","二两（10g）","下气平喘"],["杏仁","五十个（约32.5g）","降肺平喘"]],
+method:"",action:"解肌发表，降气平喘。",formulaMeaning:"",contraindication:"",variants:[]},
+
+{id:"桂枝加附子汤",alias:"",category:"温里",syndrome:"太阳病发汗太过阳虚证",
+ingredients:[["桂枝","三两（15g）","解肌"],["芍药","三两（15g）","和营"],["甘草","二两（10g）","调和"],["生姜","三两（15g）","助解表"],["大枣","十二枚（约30g）","和营"],["附子","一枚（约15g）","温经复阳"]],
+method:"",action:"扶阳解表。",formulaMeaning:"桂枝汤加附子。附子温经复阳，固表止汗。",
+contraindication:"",variants:[]},
+
+{id:"桃核承气汤",alias:"",category:"泻下",syndrome:"太阳蓄血轻证",
+ingredients:[["桃仁","五十个（约25g）","活血祛瘀"],["大黄","四两（20g）","泻热逐瘀"],["桂枝","二两（10g）","通阳行血"],["甘草","二两（10g）","调和"],["芒硝","二两（10g）","软坚散结"]],
+method:"",action:"泻热逐瘀。",formulaMeaning:"调胃承气汤加桃仁、桂枝。桃仁活血祛瘀，桂枝通阳行血。",
+contraindication:"",variants:[]},
+
+{id:"抵当汤",alias:"",category:"泻下",syndrome:"太阳蓄血重证",
+ingredients:[["水蛭","三十个","破血逐瘀"],["虻虫","三十个","破血逐瘀"],["桃仁","二十个（约10g）","活血祛瘀"],["大黄","三两（15g）","泻热逐瘀"]],
+method:"上四味，以水五升，煮取三升，去滓，温服一升。不下，更服。",
+action:"破血逐瘀。",formulaMeaning:"水蛭、虻虫为虫类药，破血逐瘀之力峻猛；桃仁活血，大黄泻热逐瘀。",
+contraindication:"",variants:[]},
+
+{id:"十枣汤",alias:"",category:"泻下",syndrome:"悬饮证",
+ingredients:[["芫花","等分（约2~3g）","逐水饮"],["甘遂","等分（约2~3g）","逐水饮"],["大戟","等分（约2~3g）","逐水饮"],["大枣","十枚（约25g）","护胃气"]],
+method:"上三味，捣筛，以水一升五合，先煮肥大枣十枚，取八合，去滓，内药末。强人服一钱匕，羸人服半钱，温服之，平旦服。",
+action:"攻逐水饮。",formulaMeaning:"甘遂、大戟、芫花峻逐水饮；大枣护胃气，缓峻烈。",
+contraindication:"",variants:[]},
+
+{id:"白虎汤",alias:"",category:"清热",syndrome:"阳明经证",
+ingredients:[["石膏","一斤（80g）","清热泻火（君药）"],["知母","六两（30g）","清热滋阴"],["甘草","二两（10g）","调和"],["粳米","六合（约9g）","护胃气"]],
+method:"上四味，以水一斗，煮米熟汤成，去滓，温服一升，日三服。",
+action:"清热生津。",formulaMeaning:"石膏辛甘大寒清热泻火（君药）；知母苦寒质润清热滋阴（臣药）；甘草+粳米益胃生津。",
+contraindication:"表证未解者禁用；脉沉或发热不渴者禁用。",variants:[]},
+
+{id:"大承气汤",alias:"",category:"泻下",syndrome:"阳明腑实证",
+ingredients:[["大黄","四两（20g）","泻热通便"],["芒硝","三合（约4.5g）","软坚润燥"],["厚朴","半斤（40g）","行气除满"],["枳实","五枚（约15g）","破气消痞"]],
+method:"上四味，以水一斗，先煮厚朴、枳实取五升，去滓，内大黄，煮取二升，去滓，内芒硝，更上微火一两沸，分温再服。得下，余勿服。",
+action:"峻下热结。",formulaMeaning:"大黄泻热通便（君药）；芒硝软坚润燥（臣药）；厚朴+枳实行气除满，消痞破结。",
+contraindication:"表证未解者禁用；阳明病面合赤色不可攻。",variants:[]},
+
+{id:"小承气汤",alias:"",category:"泻下",syndrome:"阳明腑实证",
+ingredients:[["大黄","四两（20g）","泻热通便"],["厚朴","二两（10g）","行气除满"],["枳实","三枚（约9g）","破气消痞"]],
+method:"",action:"轻下热结。",formulaMeaning:"大承气汤去芒硝，减厚朴、枳实用量，泻下之力较缓。",
+contraindication:"",variants:[]},
+
+{id:"调胃承气汤",alias:"",category:"泻下",syndrome:"阳明腑实证",
+ingredients:[["大黄","四两（20g）","泻热通便"],["芒硝","半升（约7.5g）","软坚润燥"],["甘草","二两（10g）","调和缓急"]],
+method:"",action:"缓下热结，调和胃气。",formulaMeaning:"大承气汤去厚朴、枳实，加甘草，泻下之力最缓，兼和胃气。",
+contraindication:"",variants:[]},
+
+{id:"小柴胡汤",alias:"",category:"和解",syndrome:"少阳病证",
+ingredients:[["柴胡","半斤（40g）","和解少阳（君药）"],["黄芩","三两（15g）","清热"],["人参","三两（15g）","扶正"],["半夏","半升（约40g）","降逆止呕"],["甘草","三两（15g）","调和"],["生姜","三两（15g）","助半夏止呕"],["大枣","十二枚（约30g）","扶正"]],
+method:"上七味，以水一斗二升，煮取六升，去滓，再煎取三升，温服一升，日三服。",
+action:"和解少阳。",formulaMeaning:"柴胡透达少阳之邪（君药）；黄芩清泄少阳之热；柴胡+黄芩和解少阳；半夏+生姜和胃降逆止呕；人参+大枣+甘草扶正祛邪。",
+contraindication:"",variants:[]},
+
+{id:"四逆汤",alias:"",category:"温里",syndrome:"少阴病证",
+ingredients:[["附子","一枚（约15g）","回阳救逆"],["干姜","一两半（7.5g）","温中散寒"],["甘草","二两（10g）","调和"]],
+method:"上三味，以水三升，煮取一升二合，去滓，分温再服。强人可大附子一枚、干姜三两。",
+action:"回阳救逆。",formulaMeaning:"附子（生用）大辛大热回阳救逆（君药）；干姜温中散寒助附子回阳（臣药）；甘草调和药性，缓和附子毒性。",
+contraindication:"",variants:[]},
+
+{id:"理中丸",alias:"",category:"温里",syndrome:"太阴病证",
+ingredients:[["人参","三两（15g）","补中益气"],["干姜","三两（15g）","温中散寒"],["甘草","三两（15g）","补中调和"],["白术","三两（15g）","健脾燥湿"]],
+method:"上四味，捣筛，蜜和为丸，如鸡子黄许大。以沸汤和一丸，研碎，温服之。日三四，夜二服。",
+action:"温中祛寒，补气健脾。",formulaMeaning:"干姜温中散寒（君药）；人参补中益气（臣药）；白术健脾燥湿；甘草调和诸药补中。",
+contraindication:"",variants:[]},
+
+{id:"乌梅丸",alias:"",category:"温里",syndrome:"厥阴病证",
+ingredients:[["乌梅","三百枚（约150g）","安蛔（君药）"],["细辛","六两（30g）","温脏"],["干姜","十两（50g）","温中"],["黄连","十六两（80g）","清热"],["当归","四两（20g）","补血"],["附子","六两（30g）","温阳"],["蜀椒","四两（20g）","温中杀虫"],["桂枝","六两（30g）","温阳"],["人参","六两（30g）","补气"],["黄柏","六两（30g）","清热"]],
+method:"",action:"温脏安蛔，寒热并调。",formulaMeaning:"乌梅酸以安蛔（君药）；黄连、黄柏苦以下蛔清热；细辛、干姜、附子、蜀椒、桂枝辛以伏蛔温脏；人参、当归补气血。",
+contraindication:"",variants:[]},
+
+{id:"栀子豉汤",alias:"",category:"清热",syndrome:"热扰胸膈证",
+ingredients:[["栀子","十四枚（约7g）","清热除烦"],["香豉","四合（约6g）","宣透郁热"]],
+method:"上二味，以水四升，先煮栀子得二升半，内豉，煮取一升半，去滓，分二服，温进一服。得吐者，止后服。",
+action:"清宣郁热，除烦。",formulaMeaning:"栀子苦寒清热除烦（君药）；香豉轻清宣透，解郁除烦。",
+contraindication:"",variants:[]},
+
+{id:"通脉四逆汤",alias:"",category:"温里",syndrome:"阴盛格阳证",
+ingredients:[["附子","一枚大者（约20g）","回阳救逆"],["干姜","三两（15g）","温中散寒"],["甘草","二两（10g）","调和"]],
+method:"",action:"回阳通脉。",formulaMeaning:"四逆汤倍干姜，加大附子用量，回阳之力更强。",
+contraindication:"",variants:[]},
+
+{id:"真武汤",alias:"",category:"温里",syndrome:"阳虚水泛证",
+ingredients:[["茯苓","三两（15g）","利水渗湿"],["芍药","三两（15g）","敛阴"],["生姜","三两（15g）","温散水气"],["白术","二两（10g）","健脾燥湿"],["附子","一枚（约15g）","温阳化气"]],
+method:"上五味，以水八升，煮取三升，去滓，温服七合，日三服。",
+action:"温阳利水。",formulaMeaning:"附子温肾阳化气行水（君药）；茯苓+白术健脾利湿；生姜温散水气；芍药敛阴和营，防温燥伤阴。",
+contraindication:"",variants:[]},
+
+{id:"麻黄细辛附子汤",alias:"",category:"解表",syndrome:"少阴兼表证",
+ingredients:[["麻黄","二两（10g）","发汗解表"],["细辛","二两（10g）","温经散寒"],["附子","一枚（约15g）","温阳扶正"]],
+method:"上三味，以水一斗，先煮麻黄减二升，去上沫，内诸药，煮取三升，去滓，温服一升，日三服。",
+action:"助阳解表。",formulaMeaning:"麻黄解表散寒；附子温少阴之阳；细辛温经散寒，通达内外。表里同治，扶正祛邪。",
+contraindication:"",variants:[]},
+
+{id:"黄连阿胶汤",alias:"",category:"清热",syndrome:"少阴阴虚火旺证",
+ingredients:[["黄连","四两（20g）","清心火"],["黄芩","二两（10g）","清热"],["芍药","二两（10g）","敛阴"],["阿胶","三两（15g）","滋阴养血"],["鸡子黄","二枚（约100g）","滋阴养心"]],
+method:"上五味，以水六升，先煮三物，取二升，去滓，内胶烊尽，小冷，内鸡子黄，搅令相得，温服七合，日三服。",
+action:"滋阴降火，交通心肾。",formulaMeaning:"黄连+黄芩清心降火；阿胶+芍药滋阴养血；鸡子黄滋阴养心，交通心肾。",
+contraindication:"",variants:[]},
+
+{id:"当归四逆汤",alias:"",category:"温里",syndrome:"血虚寒凝证",
+ingredients:[["当归","三两（15g）","养血活血"],["桂枝","三两（15g）","温经通阳"],["芍药","三两（15g）","养血和营"],["细辛","三两（15g）","散寒通络"],["甘草","二两（10g）","调和"],["通草","二两（10g）","通利血脉"],["大枣","二十五枚（约62.5g）","养血"]],
+method:"上七味，以水八升，煮取三升，去滓，温服一升，日三服。",
+action:"温经散寒，养血通脉。",formulaMeaning:"当归养血活血（君药）；桂枝+细辛温经散寒；芍药+大枣养血和营；通草通利血脉。",
+contraindication:"",variants:[]},
+
+{id:"柴胡桂枝汤",alias:"",category:"和解",syndrome:"太阳少阳并病证",
+ingredients:[["柴胡","四两（20g）","和解少阳"],["桂枝","一两半（7.5g）","解表"],["黄芩","一两半（7.5g）","清热"],["人参","一两半（7.5g）","扶正"],["甘草","一两（5g）","调和"],["半夏","二合半（约3.8g）","降逆"],["芍药","一两半（7.5g）","和营"],["大枣","六枚（约15g）","扶正"],["生姜","一两半（7.5g）","助解表"]],
+method:"",action:"和解少阳，兼解表邪。",formulaMeaning:"小柴胡汤与桂枝汤各半合方，太阳少阳双解。",
+contraindication:"",variants:[]},
+
+{id:"桂枝加芍药汤",alias:"",category:"解表",syndrome:"太阴腹痛证",
+ingredients:[["桂枝","三两（15g）","解肌"],["芍药","六两（30g）","缓急止痛"],["甘草","二两（10g）","调和"],["生姜","三两（15g）","助解表"],["大枣","十二枚（约30g）","和营"]],
+method:"",action:"调和营卫，缓急止痛。",formulaMeaning:"桂枝汤倍芍药。芍药加倍，重在缓急止痛。",
+contraindication:"",variants:[]},
+
+{id:"葛根黄芩黄连汤",alias:"",category:"清热",syndrome:"协热下利证",
+ingredients:[["葛根","半斤（40g）","升阳止利"],["黄芩","三两（15g）","清热燥湿"],["黄连","三两（15g）","清热燥湿"],["甘草","二两（10g）","调和诸药"]],
+method:"上四味，以水八升，先煮葛根减二升，内诸药，煮取二升，去滓，分温再服。",
+action:"解表清里，升阳止利。",formulaMeaning:"葛根升发清阳止泻利（重用为君）；黄芩+黄连清热燥湿止利；甘草调和诸药。",
+contraindication:"",variants:[]},
+
+{id:"柴胡桂枝干姜汤",alias:"",category:"和解",syndrome:"少阳兼水饮证",
+ingredients:[["柴胡","半斤（40g）","和解少阳"],["桂枝","三两（15g）","温阳"],["干姜","二两（10g）","温中化饮"],["栝楼根","四两（20g）","生津止渴"],["黄芩","三两（15g）","清热"],["牡蛎","二两（10g）","软坚散结"],["甘草","二两（10g）","调和"]],
+method:"",action:"和解少阳，温化水饮。",formulaMeaning:"小柴胡汤去人参、半夏、大枣、生姜，加桂枝、干姜、栝楼根、牡蛎。温化水饮，兼清少阳。",
+contraindication:"",variants:[]},
+
+{id:"黄连汤",alias:"",category:"和解",syndrome:"上热下寒证",
+ingredients:[["黄连","三两（15g）","清上热"],["干姜","三两（15g）","温下寒"],["桂枝","三两（15g）","通阳"],["人参","三两（15g）","补中"],["半夏","半升（约40g）","降逆"],["大枣","十二枚（约30g）","补中"],["甘草","三两（15g）","调和"]],
+method:"",action:"平调寒热，和胃降逆。",formulaMeaning:"黄连清胸中之热（上热）；干姜温胃中之寒（下寒）；桂枝通阳散寒；半夏和胃降逆止呕。",
+contraindication:"",variants:[]},
+
+{id:"茯苓甘草汤",alias:"",category:"利水",syndrome:"水停心下证",
+ingredients:[["茯苓","二两（10g）","利水渗湿"],["桂枝","二两（10g）","温阳化气"],["生姜","三两（15g）","温散水气"],["甘草","一两（5g）","调和"]],
+method:"",action:"温中化饮，通阳利水。",formulaMeaning:"茯苓利水渗湿；桂枝温阳化气；生姜温散水饮。",
+contraindication:"",variants:[]}
+,
+{id:"苓桂术甘汤",alias:"",category:"利水",syndrome:"痰饮病",
+ingredients:[["茯苓","四两（20g）","利水渗湿"],["桂枝","三两（15g）","温阳化气"],["白术","三两（15g）","健脾燥湿"],["甘草","二两（10g）","调和诸药"]],
+method:"上四味，以水六升，煮取三升，分温三服。",
+action:"温阳化饮，健脾利湿。",formulaMeaning:"茯苓利水渗湿（君药）；桂枝温阳化气（臣药）；白术健脾燥湿；甘草调和诸药。",
+contraindication:"",variants:[]},
+
+{id:"防己黄芪汤",alias:"",category:"利水",syndrome:"水气病",
+ingredients:[["防己","一两（5g）","利水消肿"],["黄芪","一两一分（约5.3g）","益气固表"],["白术","七钱半（约2.6g）","健脾燥湿"],["甘草","半两（2.5g）","调和"]],
+method:"上锉麻豆大，每抄五钱匕，生姜四片，大枣一枚，水盏半，煎八分，去滓温服。",
+action:"益气祛风，健脾利水。",formulaMeaning:"黄芪益气固表；防己利水消肿；白术健脾燥湿；甘草调和。",
+contraindication:"",variants:[]},
+
+{id:"越婢加术汤",alias:"",category:"解表",syndrome:"皮水",
+ingredients:[["麻黄","六两（30g）","发汗利水"],["石膏","半斤（40g）","清热"],["生姜","三两（15g）","助解表"],["甘草","二两（10g）","调和"],["大枣","十五枚（约37.5g）","和中"],["白术","四两（20g）","健脾燥湿"]],
+method:"",action:"发汗利水，清热健脾。",formulaMeaning:"麻黄发汗利水；石膏清热；白术健脾燥湿。",
+contraindication:"",variants:[]},
+
+{id:"茵陈蒿汤",alias:"",category:"清热",syndrome:"谷疸",
+ingredients:[["茵陈蒿","六两（30g）","清热利湿退黄"],["栀子","十四枚（约7g）","清热利湿"],["大黄","二两（10g）","泻热通便"]],
+method:"上三味，以水一斗二升，先煮茵陈减六升，内二味，煮取三升，去滓，分三服。",
+action:"清热利湿退黄。",formulaMeaning:"茵陈蒿清热利湿退黄（君药）；栀子清热利湿；大黄泻热通便，导热下行。",
+contraindication:"",variants:[]},
+
+{id:"茵陈五苓散",alias:"",category:"利水",syndrome:"黄疸（寒湿）",
+ingredients:[["茵陈蒿","末十分（约10g）","利湿退黄"],["猪苓","十八铢（约3.8g）","利水渗湿"],["泽泻","一两六铢（约6.3g）","利水渗湿"],["白术","十八铢（约3.8g）","健脾燥湿"],["茯苓","十八铢（约3.8g）","利水渗湿"],["桂枝","半两（2.5g）","温阳化气"]],
+method:"",action:"利湿退黄，温阳化气。",formulaMeaning:"五苓散加茵陈，利湿退黄之力更强。",
+contraindication:"",variants:[]},
+
+{id:"栝楼薤白白酒汤",alias:"",category:"理气",syndrome:"胸痹",
+ingredients:[["栝楼实","一枚捣（约50g）","宽胸化痰"],["薤白","半升（约25g）","通阳散结"],["白酒","七升","温通血脉"]],
+method:"上三味，同煮，取二升，分温再服。",
+action:"通阳散结，行气祛痰。",formulaMeaning:"栝楼实宽胸化痰（君药）；薤白通阳散结；白酒温通血脉。",
+contraindication:"",variants:[]},
+
+{id:"栝楼薤白半夏汤",alias:"",category:"理气",syndrome:"胸痹重症",
+ingredients:[["栝楼实","一枚捣（约50g）","宽胸化痰"],["薤白","三两（15g）","通阳散结"],["半夏","半升（约40g）","化痰降逆"],["白酒","一斗","温通血脉"]],
+method:"",action:"通阳散结，祛痰宽胸。",formulaMeaning:"栝楼薤白白酒汤加半夏，增强化痰降逆之力。",
+contraindication:"",variants:[]},
+
+{id:"黄芪桂枝五物汤",alias:"",category:"补益",syndrome:"血痹",
+ingredients:[["黄芪","三两（15g）","益气固表"],["芍药","三两（15g）","养血和营"],["桂枝","三两（15g）","温经通阳"],["生姜","六两（30g）","温散"],["大枣","十二枚（约30g）","补中"]],
+method:"上五味，以水六升，煮取二升，温服七合，日三服。",
+action:"益气温经，和血通痹。",formulaMeaning:"黄芪益气固表（君药）；桂枝温经通阳；芍药养血和营；生姜+大枣调和营卫。",
+contraindication:"",variants:[]},
+
+{id:"小建中汤",alias:"",category:"补益",syndrome:"虚劳",
+ingredients:[["桂枝","三两（15g）","温中"],["芍药","六两（30g）","缓急止痛"],["甘草","三两（15g）","补中"],["生姜","三两（15g）","温中"],["大枣","十二枚（约30g）","补中"],["胶饴","一升（约15g）","甘温补中"]],
+method:"上六味，以水七升，煮取三升，去滓，内胶饴，更上微火消解，温服一升，日三服。",
+action:"温中补虚，和里缓急。",formulaMeaning:"桂枝汤倍芍药加胶饴。胶饴甘温补中（君药）；芍药倍用缓急止痛。",
+contraindication:"",variants:[]},
+
+{id:"酸枣仁汤",alias:"",category:"补益",syndrome:"虚劳失眠",
+ingredients:[["酸枣仁","二升（约30g）","养心安神"],["茯苓","二两（10g）","宁心安神"],["知母","二两（10g）","清热除烦"],["川芎","二两（10g）","调血疏肝"],["甘草","一两（5g）","调和"]],
+method:"上五味，以水八升，煮酸枣仁得六升，内诸药，煮取三升，分温三服。",
+action:"养血安神，清热除烦。",formulaMeaning:"酸枣仁养心安神（君药）；茯苓宁心；知母清热除烦；川芎调血疏肝；甘草调和。",
+contraindication:"",variants:[]},
+
+{id:"肾气丸",alias:"八味肾气丸、崔氏八味丸",category:"补益",syndrome:"肾气虚",
+ingredients:[["干地黄","八两（40g）","滋阴补肾"],["山药","四两（20g）","补脾益肾"],["山茱萸","四两（20g）","补益肝肾"],["泽泻","三两（15g）","利水渗湿"],["茯苓","三两（15g）","利水渗湿"],["牡丹皮","三两（15g）","清热凉血"],["桂枝","一两（5g）","温通阳气"],["附子","一枚炮（约15g）","温肾助阳"]],
+method:"上八味，末之，炼蜜和丸梧子大，酒下十五丸，加至二十五丸，日再服。",
+action:"补肾助阳。",formulaMeaning:"干地黄滋阴补肾（君药）；山药、山茱萸补益肝脾肾；桂枝、附子温阳化气；泽泻、茯苓利水渗湿；丹皮清热。阴中求阳，少火生气。",
+contraindication:"",variants:[]},
+
+{id:"奔豚汤",alias:"",category:"理气",syndrome:"奔豚气",
+ingredients:[["甘草","二两（10g）","调和"],["川芎","二两（10g）","行气活血"],["当归","二两（10g）","养血"],["半夏","四两（20g）","降逆"],["黄芩","二两（10g）","清热"],["葛根","五两（25g）","升津"],["芍药","二两（10g）","缓急"],["生姜","四两（20g）","散寒"],["甘李根白皮","一升（约15g）","降逆气"]],
+method:"",action:"平冲降逆，和血清热。",formulaMeaning:"甘李根白皮降逆气（君药）；当归、川芎养血行血；半夏降逆；黄芩清热。",
+contraindication:"",variants:[]},
+
+{id:"甘草干姜汤",alias:"",category:"温里",syndrome:"肺痿",
+ingredients:[["甘草","四两（20g）","补中益气"],["干姜","二两（10g）","温中复阳"]],
+method:"上二味，以水三升，煮取一升五合，去滓，分温再服。",
+action:"温肺复气。",formulaMeaning:"甘草补中益气；干姜温中复阳。辛甘化阳，温复肺气。",
+contraindication:"",variants:[]},
+
+{id:"千金苇茎汤",alias:"",category:"清热",syndrome:"肺痈",
+ingredients:[["苇茎","二升（约30g）","清肺泄热"],["薏苡仁","半升（约30g）","清热排脓"],["瓜瓣（冬瓜仁）","半升（约30g）","清热化痰"],["桃仁","三十枚（约15g）","活血排脓"]],
+method:"上四味，以水一斗，先煮苇茎得五升，去滓，内诸药，煮取二升，服一升，再服当吐如脓。",
+action:"清肺化痰，逐瘀排脓。",formulaMeaning:"苇茎清肺泄热（君药）；薏苡仁、冬瓜仁清热化痰排脓；桃仁活血逐瘀。",
+contraindication:"",variants:[]},
+
+{id:"大半夏汤",alias:"",category:"理气",syndrome:"胃反呕吐",
+ingredients:[["半夏","二升（约80g）","降逆止呕"],["人参","三两（15g）","补中益气"],["白蜜","一升（约15g）","润燥和中"]],
+method:"上三味，以水一斗二升，和蜜扬之二百四十遍，煮取二升半，温服一升，余分再服。",
+action:"和胃降逆，补虚润燥。",formulaMeaning:"半夏降逆止呕（君药）；人参补中益气；白蜜润燥和中。",
+contraindication:"",variants:[]},
+
+{id:"甘麦大枣汤",alias:"",category:"补益",syndrome:"脏躁",
+ingredients:[["甘草","三两（15g）","和中缓急"],["小麦","一升（约15g）","养心安神"],["大枣","十枚（约25g）","补中益气"]],
+method:"上三味，以水六升，煮取三升，温分三服。",
+action:"养心安神，和中缓急。",formulaMeaning:"小麦养心安神（君药）；甘草和中缓急；大枣补中益气。三味甘缓，润燥安神。",
+contraindication:"",variants:[]},
+
+{id:"半夏厚朴汤",alias:"",category:"理气",syndrome:"梅核气",
+ingredients:[["半夏","一升（约80g）","化痰降逆"],["厚朴","三两（15g）","行气散结"],["茯苓","四两（20g）","健脾渗湿"],["生姜","五两（25g）","散结止呕"],["苏叶","二两（10g）","理气解郁"]],
+method:"上五味，以水七升，煮取四升，分温四服，日三夜一服。",
+action:"行气散结，降逆化痰。",formulaMeaning:"半夏化痰降逆（君药）；厚朴行气散结；茯苓健脾渗湿；生姜散结止呕；苏叶理气解郁。",
+contraindication:"",variants:[]},
+
+{id:"桂枝茯苓丸",alias:"",category:"理血",syndrome:"妇人癥病",
+ingredients:[["桂枝","等分","温通血脉"],["茯苓","等分","健脾渗湿"],["牡丹皮","等分","活血散瘀"],["桃仁","等分（去皮尖）","活血祛瘀"],["芍药","等分","养血和营"]],
+method:"上五味，末之，炼蜜和丸如兔屎大，每日食前服一丸，不知加至三丸。",
+action:"活血化瘀，缓消癥块。",formulaMeaning:"桂枝温通血脉；桃仁活血祛瘀；丹皮活血散瘀；芍药养血和营；茯苓健脾渗湿。",
+contraindication:"",variants:[]},
+
+{id:"当归芍药散",alias:"",category:"理血",syndrome:"妇人腹痛",
+ingredients:[["当归","三两（15g）","养血活血"],["芍药","一斤（80g）","缓急止痛"],["川芎","半斤（40g）","行气活血"],["茯苓","四两（20g）","健脾渗湿"],["白术","四两（20g）","健脾燥湿"],["泽泻","半斤（40g）","利水渗湿"]],
+method:"上六味，杵为散，取方寸匕，酒和，日三服。",
+action:"养血疏肝，健脾利湿。",formulaMeaning:"当归、芍药、川芎养血疏肝；茯苓、白术、泽泻健脾利湿。",
+contraindication:"",variants:[]},
+
+{id:"温经汤",alias:"",category:"温里",syndrome:"冲任虚寒",
+ingredients:[["吴茱萸","三两（15g）","温经散寒"],["当归","二两（10g）","养血活血"],["川芎","二两（10g）","行气活血"],["芍药","二两（10g）","养血和营"],["人参","二两（10g）","补气"],["桂枝","二两（10g）","温经通阳"],["阿胶","二两（10g）","滋阴养血"],["牡丹皮","二两（10g）","活血散瘀"],["生姜","二两（10g）","温中"],["甘草","二两（10g）","调和"],["半夏","半升（约40g）","降逆"],["麦门冬","一升（约15g）","滋阴润燥"]],
+method:"上十二味，以水一斗，煮取三升，分温三服。",
+action:"温经散寒，养血祛瘀。",formulaMeaning:"吴茱萸温经散寒（君药）；当归、川芎、芍药养血活血；桂枝温经通阳；阿胶滋阴养血；人参补气；丹皮活血；麦冬滋阴润燥。温清并用，补泻兼施。",
+contraindication:"",variants:[]},
+
+{id:"当归生姜羊肉汤",alias:"",category:"温里",syndrome:"寒疝",
+ingredients:[["当归","三两（15g）","养血活血"],["生姜","五两（25g）","温中散寒"],["羊肉","一斤（80g）","温补气血"]],
+method:"上三味，以水八升，煮取三升，温服七合，日三服。",
+action:"温中补虚，散寒止痛。",formulaMeaning:"羊肉温补气血（君药）；当归养血活血；生姜温中散寒。药食同源，温补兼行。",
+contraindication:"",variants:[]},
+
+{id:"百合地黄汤",alias:"",category:"补益",syndrome:"百合病",
+ingredients:[["百合","七枚擘（约35g）","养阴清热"],["生地黄汁","一升（约15g）","滋阴清热"]],
+method:"上二味，以水洗百合，渍一宿，当白沫出，去其水，更以泉水二升，煎取一升，去滓，内地黄汁，煎取一升五合，分温再服。",
+action:"养阴清热，润心肺。",formulaMeaning:"百合养阴清热润心肺（君药）；生地黄滋阴清热。",
+contraindication:"",variants:[]},
+
+{id:"大黄牡丹汤",alias:"",category:"泻下",syndrome:"肠痈",
+ingredients:[["大黄","四两（20g）","泻热逐瘀"],["牡丹皮","一两（5g）","凉血散瘀"],["桃仁","五十个（约25g）","活血祛瘀"],["冬瓜仁","半升（约30g）","清热排脓"],["芒硝","三合（约4.5g）","软坚散结"]],
+method:"上五味，以水六升，煮取一升，去滓，内芒硝，再煎沸，顿服之，有脓当下；如无脓，当下血。",
+action:"泻热破瘀，散结消肿。",formulaMeaning:"大黄泻热逐瘀（君药）；芒硝软坚散结；桃仁、丹皮活血散瘀；冬瓜仁清热排脓。",
+contraindication:"脓已成者不可下。",variants:[]}
+],
+
+symptoms:[
+{id:"发热",category:"全身",syndromes:[{name:"太阳中风证",feature:"翕翕发热",accompany:"汗出、恶风",formula:"桂枝汤"},{name:"太阳伤寒证",feature:"发热或已或未",accompany:"恶寒、无汗、身痛",formula:"麻黄汤"},{name:"太阳伤寒兼里热证",feature:"发热",accompany:"无汗、烦躁",formula:"大青龙汤"},{name:"外寒内饮证",feature:"发热",accompany:"咳、喘、干呕",formula:"小青龙汤"},{name:"阳明经证",feature:"大热（蒸蒸发热）",accompany:"大汗出、大渴",formula:"白虎汤"},{name:"少阴兼表证",feature:"反发热",accompany:"脉沉",formula:"麻黄细辛附子汤"},{name:"太阳少阳并病证",feature:"发热微恶寒",accompany:"支节烦疼",formula:"柴胡桂枝汤"}]},
+{id:"恶寒",category:"表证",syndromes:[{name:"太阳中风证",feature:"啬啬恶寒，淅淅恶风",accompany:"发热、汗出",formula:"桂枝汤"},{name:"太阳伤寒证",feature:"必恶寒",accompany:"发热或已或未、无汗",formula:"麻黄汤"},{name:"太阳伤寒兼里热证",feature:"恶寒",accompany:"无汗、烦躁",formula:"大青龙汤"},{name:"外寒内饮证",feature:"恶寒",accompany:"咳、喘",formula:"小青龙汤"},{name:"太阳病发汗太过阳虚证",feature:"恶风",accompany:"汗漏不止",formula:"桂枝加附子汤"}]},
+{id:"汗出",category:"表证",syndromes:[{name:"太阳中风证",feature:"汗自出",accompany:"发热、恶风",formula:"桂枝汤"},{name:"阳明经证",feature:"大汗出",accompany:"大热、大渴",formula:"白虎汤"},{name:"太阳病发汗太过阳虚证",feature:"汗漏不止",accompany:"恶风、小便难",formula:"桂枝加附子汤"}]},
+{id:"恶风",category:"表证",syndromes:[{name:"太阳中风证",feature:"淅淅恶风",accompany:"发热、汗出",formula:"桂枝汤"},{name:"太阳伤寒证",feature:"恶风",accompany:"无汗、身痛",formula:"麻黄汤"},{name:"太阳中风兼经输不利证",feature:"恶风",accompany:"项背强几几、汗出",formula:"桂枝加葛根汤"},{name:"太阳伤寒兼经输不利证",feature:"恶风",accompany:"项背强几几、无汗",formula:"葛根汤"},{name:"太阳病发汗太过阳虚证",feature:"恶风",accompany:"汗漏不止",formula:"桂枝加附子汤"}]},
+{id:"小便不利",category:"里证",syndromes:[{name:"太阳蓄水证",feature:"小便不利",accompany:"消渴、微热",formula:"五苓散"},{name:"外寒内饮证",feature:"或小便不利、少腹满",accompany:"咳、喘",formula:"小青龙汤"},{name:"阳虚水泛证",feature:"小便不利",accompany:"腹痛、四肢沉重",formula:"真武汤"},{name:"少阳兼水饮证",feature:"小便不利",accompany:"渴、往来寒热",formula:"柴胡桂枝干姜汤"}]},
+{id:"头痛",category:"全身",syndromes:[{name:"太阳中风证",feature:"头痛",accompany:"发热、汗出、恶风",formula:"桂枝汤"},{name:"太阳伤寒证",feature:"头痛",accompany:"恶寒、无汗、身痛",formula:"麻黄汤"}]},
+{id:"喘",category:"全身",syndromes:[{name:"太阳伤寒证",feature:"无汗而喘",accompany:"恶寒、发热、身痛",formula:"麻黄汤"},{name:"太阳中风兼喘证",feature:"喘",accompany:"中风证",formula:"桂枝加厚朴杏子汤"},{name:"外寒内饮证",feature:"咳而微喘",accompany:"干呕、发热",formula:"小青龙汤"},{name:"太阳病误下致喘证",feature:"微喘",accompany:"表未解",formula:"桂枝加厚朴杏子汤"},{name:"阳明腑实证",feature:"喘",accompany:"腹满、潮热",formula:"大承气汤"}]},
+{id:"咳",category:"全身",syndromes:[{name:"外寒内饮证",feature:"干呕发热而咳",accompany:"恶寒、无汗、喘",formula:"小青龙汤"}]},
+{id:"干呕",category:"全身",syndromes:[{name:"太阳中风证",feature:"鼻鸣干呕",accompany:"发热、汗出、恶风",formula:"桂枝汤"},{name:"外寒内饮证",feature:"干呕发热而咳",accompany:"咳、喘",formula:"小青龙汤"}]},
+{id:"消渴",category:"里证",syndromes:[{name:"太阳蓄水证",feature:"烦渴欲饮",accompany:"小便不利、微热",formula:"五苓散"},{name:"厥阴病证",feature:"消渴",accompany:"气上撞心、心中疼热",formula:"乌梅丸"}]},
+{id:"烦躁",category:"全身",syndromes:[{name:"太阳伤寒兼里热证",feature:"不汗出而烦躁",accompany:"发热、恶寒、无汗",formula:"大青龙汤"},{name:"大结胸证",feature:"短气躁烦，心中懊憹",accompany:"心下痛、按之石硬",formula:"大陷胸汤"},{name:"热扰胸膈证",feature:"烦躁不得眠",accompany:"心中懊憹",formula:"栀子豉汤"}]},
+{id:"身痛",category:"全身",syndromes:[{name:"太阳伤寒证",feature:"身疼、腰痛、骨节疼痛",accompany:"恶寒、无汗",formula:"麻黄汤"},{name:"太阳伤寒兼里热证",feature:"身疼痛",accompany:"不汗出、烦躁",formula:"大青龙汤"}]},
+{id:"鼻鸣",category:"全身",syndromes:[{name:"太阳中风证",feature:"鼻鸣",accompany:"干呕、发热、汗出、恶风",formula:"桂枝汤"}]},
+{id:"项背强几几",category:"全身",syndromes:[{name:"太阳中风兼经输不利证",feature:"项背强几几",accompany:"汗出、恶风",formula:"桂枝加葛根汤"},{name:"太阳伤寒兼经输不利证",feature:"项背强几几",accompany:"无汗、恶风",formula:"葛根汤"}]},
+{id:"少腹急结",category:"里证",syndromes:[{name:"太阳蓄血轻证",feature:"少腹急结",accompany:"其人如狂、小便自利",formula:"桃核承气汤"}]},
+{id:"心下痞",category:"里证",syndromes:[{name:"痞证",feature:"心下满而不痛，按之濡",accompany:"呕、肠鸣、下利",formula:"半夏泻心汤"},{name:"大结胸证",feature:"心下硬满",accompany:"按之石硬痛",formula:"大陷胸汤"},{name:"小结胸证",feature:"正在心下",accompany:"按之则痛",formula:"小陷胸汤"}]},
+{id:"下利",category:"里证",syndromes:[{name:"协热下利证",feature:"利遂不止",accompany:"脉促、喘而汗出",formula:"葛根黄芩黄连汤"},{name:"外寒内饮证",feature:"或下利",accompany:"咳、喘、干呕",formula:"小青龙汤"},{name:"痞证",feature:"下利",accompany:"心下痞、呕、肠鸣",formula:"半夏泻心汤"},{name:"太阴病证",feature:"自利益甚",accompany:"腹满而吐、食不下",formula:"理中丸"},{name:"少阴病证",feature:"下利清谷",accompany:"四肢厥逆",formula:"四逆汤"},{name:"阳虚水泛证",feature:"自下利",accompany:"腹痛、小便不利",formula:"真武汤"}]},
+{id:"呕",category:"里证",syndromes:[{name:"痞证",feature:"呕",accompany:"心下痞、肠鸣、下利",formula:"半夏泻心汤"},{name:"少阳病证",feature:"心烦喜呕",accompany:"往来寒热",formula:"小柴胡汤"},{name:"上热下寒证",feature:"欲呕吐",accompany:"腹中痛",formula:"黄连汤"}]},
+{id:"肠鸣",category:"里证",syndromes:[{name:"痞证",feature:"肠鸣",accompany:"心下痞、呕、下利",formula:"半夏泻心汤"}]},
+{id:"腰痛",category:"全身",syndromes:[{name:"太阳伤寒证",feature:"腰痛",accompany:"恶寒、无汗、身痛",formula:"麻黄汤"}]},
+{id:"往来寒热",category:"全身",syndromes:[{name:"少阳病证",feature:"往来寒热，休作有时",accompany:"胸胁苦满、心烦喜呕",formula:"小柴胡汤"},{name:"少阳兼水饮证",feature:"往来寒热",accompany:"胸胁满微结、渴",formula:"柴胡桂枝干姜汤"}]},
+{id:"口苦",category:"全身",syndromes:[{name:"少阳病证",feature:"口苦",accompany:"咽干、目眩",formula:"小柴胡汤"}]},
+{id:"咽干",category:"全身",syndromes:[{name:"少阳病证",feature:"咽干",accompany:"口苦、目眩",formula:"小柴胡汤"}]},
+{id:"目眩",category:"全身",syndromes:[{name:"少阳病证",feature:"目眩",accompany:"口苦、咽干",formula:"小柴胡汤"}]},
+{id:"四肢厥逆",category:"全身",syndromes:[{name:"少阴病证",feature:"四肢厥逆",accompany:"下利清谷、脉微细",formula:"四逆汤"},{name:"阴盛格阳证",feature:"手足厥逆",accompany:"身反不恶寒、面色赤",formula:"通脉四逆汤"},{name:"热厥证",feature:"厥逆",accompany:"脉滑、里有热",formula:"白虎汤"},{name:"血虚寒凝证",feature:"手足厥寒",accompany:"脉细欲绝",formula:"当归四逆汤"},{name:"蛔厥证",feature:"手足厥冷",accompany:"吐蛔、时烦时止",formula:"乌梅丸"}]},
+{id:"潮热",category:"全身",syndromes:[{name:"阳明腑实证",feature:"潮热",accompany:"谵语、腹满痛",formula:"大承气汤/小承气汤"}]},
+{id:"谵语",category:"全身",syndromes:[{name:"阳明腑实证",feature:"谵语",accompany:"潮热、大便硬",formula:"大承气汤/小承气汤"}]},
+{id:"心中懊憹",category:"全身",syndromes:[{name:"热扰胸膈证",feature:"心中懊憹",accompany:"舌上胎、烦躁",formula:"栀子豉汤"},{name:"大结胸证",feature:"心中懊憹",accompany:"短气躁烦、心下痛",formula:"大陷胸汤"}]},
+{id:"腹痛",category:"里证",syndromes:[{name:"太阴病证",feature:"时腹自痛",accompany:"腹满而吐、下利",formula:"理中丸"},{name:"太阴腹痛证",feature:"腹满时痛",accompany:"太阳误下",formula:"桂枝加芍药汤"},{name:"阳虚水泛证",feature:"腹痛",accompany:"小便不利、四肢沉重",formula:"真武汤"},{name:"上热下寒证",feature:"腹中痛",accompany:"欲呕",formula:"黄连汤"}]},
+{id:"大热",category:"全身",syndromes:[{name:"阳明经证",feature:"大热",accompany:"大汗出、大渴",formula:"白虎汤"}]},
+{id:"大汗出",category:"全身",syndromes:[{name:"阳明经证",feature:"大汗出",accompany:"大热、大渴",formula:"白虎汤"},{name:"太阳病发汗太过阳虚证",feature:"汗漏不止",accompany:"恶风",formula:"桂枝加附子汤"}]},
+{id:"大渴",category:"全身",syndromes:[{name:"阳明经证",feature:"大渴",accompany:"大热、大汗出",formula:"白虎汤"},{name:"太阳蓄水证",feature:"消渴",accompany:"小便不利",formula:"五苓散"},{name:"厥阴病证",feature:"消渴",accompany:"气上撞心、心中疼热",formula:"乌梅丸"}]},
+{id:"小便难",category:"里证",syndromes:[{name:"太阳病发汗太过阳虚证",feature:"小便难",accompany:"汗漏不止、恶风",formula:"桂枝加附子汤"}]},
+{id:"饥",category:"全身",syndromes:[{name:"厥阴病证",feature:"饥而不欲食",accompany:"消渴、气上撞心",formula:"乌梅丸"}]},
+{id:"蛔",category:"全身",syndromes:[{name:"蛔厥证",feature:"吐蛔",accompany:"手足厥冷、时烦时止",formula:"乌梅丸"},{name:"厥阴病证",feature:"食则吐蛔",accompany:"消渴、气上撞心",formula:"乌梅丸"}]},
+{id:"头眩",category:"全身",syndromes:[{name:"痰饮病",feature:"目眩",accompany:"心下逆满、气上冲胸",formula:"苓桂术甘汤"}]},
+{id:"心悸",category:"全身",syndromes:[{name:"痰饮病",feature:"心悸",accompany:"短气、头眩",formula:"苓桂术甘汤"}]},
+{id:"咳逆倚息",category:"全身",syndromes:[{name:"支饮",feature:"咳逆倚息不得卧",accompany:"短气",formula:"小青龙汤"}]},
+{id:"身黄",category:"全身",syndromes:[{name:"谷疸",feature:"身黄如橘子色",accompany:"小便不利、腹微满",formula:"茵陈蒿汤"},{name:"黄疸（寒湿）",feature:"身黄晦暗",accompany:"小便不利",formula:"茵陈五苓散"}]},
+{id:"胸背痛",category:"全身",syndromes:[{name:"胸痹",feature:"胸背痛",accompany:"短气、喘息咳唾",formula:"栝楼薤白白酒汤"}]},
+{id:"心痛彻背",category:"全身",syndromes:[{name:"胸痹重症",feature:"心痛彻背",accompany:"不得卧",formula:"栝楼薤白半夏汤"}]},
+{id:"身体不仁",category:"全身",syndromes:[{name:"血痹",feature:"身体不仁",accompany:"如风痹状",formula:"黄芪桂枝五物汤"}]},
+{id:"虚烦不得眠",category:"全身",syndromes:[{name:"虚劳失眠",feature:"虚烦不得眠",accompany:"",formula:"酸枣仁汤"}]},
+{id:"虚劳腰痛",category:"全身",syndromes:[{name:"肾气虚",feature:"虚劳腰痛",accompany:"少腹拘急、小便不利",formula:"肾气丸"}]},
+{id:"气上冲咽喉",category:"全身",syndromes:[{name:"奔豚气",feature:"气从少腹上冲咽喉",accompany:"发作欲死、复还止",formula:"奔豚汤"}]},
+{id:"咳唾涎沫",category:"全身",syndromes:[{name:"肺痿",feature:"咳唾涎沫",accompany:"小便数、不渴",formula:"甘草干姜汤"}]},
+{id:"咳吐脓血",category:"全身",syndromes:[{name:"肺痈",feature:"咳吐脓血如米粥",accompany:"胸中满痛",formula:"千金苇茎汤"}]},
+{id:"朝食暮吐",category:"全身",syndromes:[{name:"胃反呕吐",feature:"朝食暮吐，暮食朝吐",accompany:"宿谷不化",formula:"大半夏汤"}]},
+{id:"喜悲伤欲哭",category:"全身",syndromes:[{name:"脏躁",feature:"喜悲伤欲哭",accompany:"象如神灵所作、数欠伸",formula:"甘麦大枣汤"}]},
+{id:"咽中如有炙脔",category:"全身",syndromes:[{name:"梅核气",feature:"咽中如有炙脔",accompany:"",formula:"半夏厚朴汤"}]},
+{id:"饮一斗小便一斗",category:"里证",syndromes:[{name:"消渴（金匮）",feature:"饮一斗，小便一斗",accompany:"",formula:"肾气丸"}]},
+{id:"少腹肿痞",category:"里证",syndromes:[{name:"肠痈",feature:"少腹肿痞",accompany:"按之即痛、时时发热",formula:"大黄牡丹汤"}]},
+{id:"少腹里急",category:"里证",syndromes:[{name:"冲任虚寒",feature:"少腹里急",accompany:"暮即发热、手掌烦热",formula:"温经汤"}]},
+]
+};
+
+// ===== UTILITY =====
+function chip(text,onclick){return`<span class="link-chip" onclick="event.stopPropagation();${onclick}">${text}</span>`}
+function tagHTML(t){return`<span class="tag tag-${t}">${t}</span>`}
+
+// ===== SEARCH =====
+function handleSearch(q){const box=document.getElementById('searchResults');if(!q.trim()){box.classList.remove('active');return}const results=[],ql=q.toLowerCase();DATA.syndromes.forEach(s=>{if(s.id.includes(ql))results.push({type:'证候',id:s.id,meridian:s.meridian})});DATA.formulas.forEach(f=>{if(f.id.includes(ql))results.push({type:'方剂',id:f.id})});DATA.symptoms.forEach(s=>{if(s.id.includes(ql))results.push({type:'症状',id:s.id})});box.innerHTML=results.length?results.slice(0,20).map(r=>{const e=r.meridian?`<span class="tag tag-${r.meridian}" style="font-size:10px;margin-left:auto">${r.meridian}</span>`:'';return`<div class="search-result-item" onclick="openItem('${r.type}','${r.id}')"><span class="type-badge">${r.type}</span>${r.id}${e}</div>`}).join(''):'<div style="padding:12px;text-align:center;color:#999">无匹配结果</div>';box.classList.add('active')}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-box'))document.getElementById('searchResults').classList.remove('active')});
+function openItem(type,id){document.getElementById('searchResults').classList.remove('active');document.getElementById('searchInput').value='';if(type==='证候'){showPage('syndromes');showSyndromeDetail(id)}else if(type==='方剂'){showPage('formulas');showFormulaDetail(id)}else if(type==='症状'){showPage('symptoms');showSymptomDetail(id)}}
+
+// ===== NAV =====
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>showPage(tab.dataset.page))});
+function showPage(name){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');document.querySelectorAll('.nav-tab').forEach(t=>{t.classList.toggle('active',t.dataset.page===name)});if(name==='syndromes'){document.getElementById('syndromesList').style.display='';document.getElementById('syndromeDetail').style.display='none'}if(name==='formulas'){document.getElementById('formulasList').style.display='';document.getElementById('formulaDetail').style.display='none'}if(name==='symptoms'){document.getElementById('symptomsList').style.display='';document.getElementById('symptomDetail').style.display='none'}}
+
+(function() {
+  'use strict';
+
+  // ===== 天干地支常量 =====
+  var TIANGAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var DIZHI   = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+  // ===== 五行 =====
+  var WUXING_COLORS = {
+    '木': '#5a7a5a', '火': '#c23b27', '土': '#b8952a',
+    '金': '#8a8a7a', '水': '#3a6070'
+  };
+
+  // ===== 五运对应 =====
+  var YUN_MAP = {
+    '甲':'土','乙':'金','丙':'水','丁':'木','戊':'火',
+    '己':'土','庚':'金','辛':'水','壬':'木','癸':'火'
+  };
+
+  // ===== 太过/不及 =====
+  var GUO_MAP = {
+    '甲':'太过','乙':'不及','丙':'太过','丁':'不及','戊':'太过',
+    '己':'不及','庚':'太过','辛':'不及','壬':'太过','癸':'不及'
+  };
+
+  // ===== 司天在泉 =====
+  var SITIAN_MAP = {
+    '子': {si:'少阴君火',zai:'阳明燥金'},
+    '丑': {si:'太阴湿土',zai:'太阳寒水'},
+    '寅': {si:'少阳相火',zai:'厥阴风木'},
+    '卯': {si:'阳明燥金',zai:'少阴君火'},
+    '辰': {si:'太阳寒水',zai:'太阴湿土'},
+    '巳': {si:'厥阴风木',zai:'少阳相火'},
+    '午': {si:'少阴君火',zai:'阳明燥金'},
+    '未': {si:'太阴湿土',zai:'太阳寒水'},
+    '申': {si:'少阳相火',zai:'厥阴风木'},
+    '酉': {si:'阳明燥金',zai:'少阴君火'},
+    '戌': {si:'太阳寒水',zai:'太阴湿土'},
+    '亥': {si:'厥阴风木',zai:'少阳相火'}
+  };
+
+  // ===== 五行对应脏腑 =====
+  var WUXING_ORG = {
+    '木': {zang:'肝',fu:'胆',ji:'筋',season:'春',qi:'风',emotion:'怒',taste:'酸'},
+    '火': {zang:'心',fu:'小肠',ji:'脉',season:'夏',qi:'热',emotion:'喜',taste:'苦'},
+    '土': {zang:'脾',fu:'胃',ji:'肉',season:'长夏',qi:'湿',emotion:'思',taste:'甘'},
+    '金': {zang:'肺',fu:'大肠',ji:'皮',season:'秋',qi:'燥',emotion:'悲',taste:'辛'},
+    '水': {zang:'肾',fu:'膀胱',ji:'骨',season:'冬',qi:'寒',emotion:'恐',taste:'咸'}
+  };
+
+  // ===== 二十四节气 =====
+  var JIEQI_LIST = [
+    '立春','雨水','惊蛰','春分','清明','谷雨',
+    '立夏','小满','芒种','夏至','小暑','大暑',
+    '立秋','处暑','白露','秋分','寒露','霜降',
+    '立冬','小雪','大雪','冬至','小寒','大寒'
+  ];
+
+  var JIEQI_DATES = {
+    '立春':'2月4日','雨水':'2月19日','惊蛰':'3月6日','春分':'3月21日',
+    '清明':'4月5日','谷雨':'4月20日','立夏':'5月6日','小满':'5月21日',
+    '芒种':'6月6日','夏至':'6月21日','小暑':'7月7日','大暑':'7月23日',
+    '立秋':'8月8日','处暑':'8月23日','白露':'9月8日','秋分':'9月23日',
+    '寒露':'10月8日','霜降':'10月23日','立冬':'11月7日','小雪':'11月22日',
+    '大雪':'12月7日','冬至':'12月22日','小寒':'1月6日','大寒':'1月20日'
+  };
+
+  // ===== 计算函数 =====
+  function getGanZhi(year) {
+    var gan = TIANGAN[(year - 4) % 10];
+    var zhi = DIZHI[(year - 4) % 12];
+    return { gan: gan, zhi: zhi, full: gan + zhi };
+  }
+
+  function getYun(gan) {
+    return YUN_MAP[gan];
+  }
+
+  function getGuo(gan) {
+    return GUO_MAP[gan];
+  }
+
+  function getSiZai(zhi) {
+    return SITIAN_MAP[zhi];
+  }
+
+  // 六步气位
+  function getLiuBuSiQi(zhi) {
+    var KEQI_ORDER = ['厥阴风木','少阴君火','太阴湿土','少阳相火','阳明燥金','太阳寒水'];
+    var ZHI_TO_KEQI_IDX = {
+      '寅':0,'卯':1,'辰':2,'巳':3,'午':4,'未':5,
+      '申':0,'酉':1,'戌':2,'亥':3,'子':4,'丑':5
+    };
+    var siTianIdx = ZHI_TO_KEQI_IDX[zhi];
+    var siTian = KEQI_ORDER[siTianIdx];
+    var zaiQuan = KEQI_ORDER[(siTianIdx + 3) % 6];
+
+    var keqi = [];
+    var zhuqi = ['厥阴风木','少阴君火','少阳相火','太阴湿土','阳明燥金','太阳寒水'];
+    for (var i = 0; i < 6; i++) {
+      keqi.push(KEQI_ORDER[(siTianIdx + i - 2 + 6) % 6]);
+    }
+
+    return { keqi: keqi, zhuqi: zhuqi, siTian: siTian, zaiQuan: zaiQuan };
+  }
+
+  // 当前节气
+  function getCurrentJieqi(month, day) {
+    var jieqiApprox = [
+      {name:'小寒',m:1,d:6},{name:'大寒',m:1,d:20},
+      {name:'立春',m:2,d:4},{name:'雨水',m:2,d:19},
+      {name:'惊蛰',m:3,d:6},{name:'春分',m:3,d:21},
+      {name:'清明',m:4,d:5},{name:'谷雨',m:4,d:20},
+      {name:'立夏',m:5,d:6},{name:'小满',m:5,d:21},
+      {name:'芒种',m:6,d:6},{name:'夏至',m:6,d:21},
+      {name:'小暑',m:7,d:7},{name:'大暑',m:7,d:23},
+      {name:'立秋',m:8,d:8},{name:'处暑',m:8,d:23},
+      {name:'白露',m:9,d:8},{name:'秋分',m:9,d:23},
+      {name:'寒露',m:10,d:8},{name:'霜降',m:10,d:23},
+      {name:'立冬',m:11,d:7},{name:'小雪',m:11,d:22},
+      {name:'大雪',m:12,d:7},{name:'冬至',m:12,d:22}
+    ];
+    var now = month * 100 + day;
+    var current = jieqiApprox[23];
+    for (var i = 0; i < jieqiApprox.length; i++) {
+      if (now >= jieqiApprox[i].m * 100 + jieqiApprox[i].d) {
+        current = jieqiApprox[i];
+      }
+    }
+    return current;
+  }
+
+  // ===== 经文数据库 =====
+  var JINGWEN = {
+    '土运': {
+      source: '《素问 · 五运行大论》',
+      classical: '岁土太过，雨湿流行，肾水受邪。民病腹痛，清厥意不乐，体重烦冤。上应镇星。甚则肌肉萎，足痿不收，行善瘛，脚下痛，饮发中满食减，四肢不举。',
+      modern: '土运太过之年，雨水湿气盛行，肾水受到邪气侵犯。人们容易患腹痛、四肢厥冷、情绪低落、身体沉重、烦闷等病症。严重的会出现肌肉萎缩、下肢痿软无力、行走抽搐、脚下疼痛、水饮内停、脘腹胀满、食欲减退、四肢无力等症状。'
+    },
+    '土运不及': {
+      source: '《素问 · 气交变大论》',
+      classical: '岁土不及，风乃大行，化气不令，草木茂荣，飘扬而甚，秀而不实。民病飧泄霍乱，体重腹痛，筋骨繇复，肌肉瞤酸，善怒。',
+      modern: '土运不及之年，风气大盛，脾土化气不能正常发挥作用。人们易患泄泻、霍乱、身体沉重腹痛、筋骨动摇、肌肉酸痛、容易发怒等症状。'
+    },
+    '金运': {
+      source: '《素问 · 五常政大论》',
+      classical: '岁金太过，燥气流行，肝木受邪。民病两胁下少腹痛，目赤痛眦疡，耳无所闻。肃杀而甚，则体重烦冤，胸痛引背，两胁满且痛引少腹。',
+      modern: '金运太过之年，燥气盛行，肝木受到邪气侵犯。人们容易两胁和小腹疼痛、眼睛红肿疼痛、眼角生疮、听力下降。肃杀之气太过的话，还会出现身体沉重烦闷、胸痛连及背部、两胁胀满疼痛连及小腹等症状。'
+    },
+    '金运不及': {
+      source: '《素问 · 气交变大论》',
+      classical: '岁金不及，炎火乃行，生气乃用，长气专胜。民病肩背瞀重，鼽嚏，血便注下。',
+      modern: '金运不及之年，火热之气盛行，生长之气旺盛。人们易患肩背沉重闷痛、鼻塞流涕打喷嚏、便血、泄泻不止等病症。'
+    },
+    '水运': {
+      source: '《素问 · 气交变大论》',
+      classical: '岁水太过，寒气流行，邪害心火。民病身热烦心躁悸，阴厥上下中寒，谵妄心痛。甚则腹大胫肿，喘咳寝汗出憎风。',
+      modern: '水运太过之年，寒气流行，心火受到邪气侵犯。人们容易身热心烦、心悸躁动、四肢厥冷、全身发冷、胡言乱语、心痛。严重的会出现腹部胀大、小腿浮肿、气喘咳嗽、睡中出汗、怕风等症状。'
+    },
+    '水运不及': {
+      source: '《素问 · 气交变大论》',
+      classical: '岁水不及，湿乃大行，长气反用。民病腹满身重，濡泄寒疡流水，腰股痛发，腘腨股膝不便，烦冤足痿清厥，跗肿。',
+      modern: '水运不及之年，湿气大盛，人们易患腹部胀满、身体沉重、水样泄泻、腰部及大腿疼痛、膝部活动不利、烦闷、足部痿软厥冷、脚面浮肿等病症。'
+    },
+    '木运': {
+      source: '《素问 · 五常政大论》',
+      classical: '岁木太过，风气流行，脾土受邪。民病飧泄食减，体重烦冤，肠鸣腹支满。甚则忽忽善怒，眩冒巅疾。',
+      modern: '木运太过之年，风气盛行，脾土受到邪气侵犯。人们容易患泄泻、食欲减退、身体沉重烦闷、肠鸣腹胀。严重的会出现容易发怒、头晕目眩、头部疾患等症状。'
+    },
+    '木运不及': {
+      source: '《素问 · 气交变大论》',
+      classical: '岁木不及，燥乃大行。民病中清，胠胁痛，少腹痛，肠鸣溏泄。',
+      modern: '木运不及之年，燥气大盛。人们易患脾胃虚寒、胸胁疼痛、小腹疼痛、肠鸣、大便稀溏泄泻等病症。'
+    },
+    '火运': {
+      source: '《素问 · 气交变大论》',
+      classical: '岁火太过，炎暑流行，肺金受邪。民病疟少气咳喘，血溢血泄注下，嗌燥耳聋，中热肩背热。',
+      modern: '火运太过之年，炎暑盛行，肺金受到邪气侵犯。人们容易患疟疾、气短咳喘、各种出血（吐血、便血、泄泻）、咽喉干燥、耳聋、内热、肩背发热等症状。'
+    },
+    '火运不及': {
+      source: '《素问 · 气交变大论》',
+      classical: '岁火不及，寒乃大行。民病胸中痛，胁支满，两胁痛，膺背肩胛间及两臂内痛，郁冒朦昧，心痛暴瘖。',
+      modern: '火运不及之年，寒气大盛。人们易患胸中疼痛、胸胁胀满、两胁疼痛、胸前和肩胛之间以及两臂内侧疼痛、郁闷眩晕、心痛、突然失音等病症。'
+    }
+  };
+
+  // 司天在泉经文
+  var SITIAN_JINGWEN = {
+    '少阴君火': {
+      source: '《素问 · 六元正纪大论》',
+      classical: '少阴司天，热气下临，肺气上从，白起金用，草木眚。喘呕寒热，嚏鼽衄鼻窒。',
+      modern: '少阴君火司天之年，热气从天而下降，肺气受其影响而顺应，燥金之气兴起，草木受害。人们易患气喘、呕吐、寒热往来、打喷嚏、流鼻涕、流鼻血、鼻塞等病症。'
+    },
+    '太阴湿土': {
+      source: '《素问 · 六元正纪大论》',
+      classical: '太阴司天，湿气下临，肾气上从，黑起水变，埃冒云雨。胸中不利，阴萎气大衰而不起不用。',
+      modern: '太阴湿土司天之年，湿气从天而下降，肾气受其影响而顺应，水气发生变化，乌云密布多雨。人们易患胸中不舒畅、阳萎、元气大衰等病症。'
+    },
+    '少阳相火': {
+      source: '《素问 · 六元正纪大论》',
+      classical: '少阳司天，火气下临，肺气上从，白起金用，风行乃厉。大暑以行，咳嚏鼽衄鼻窒，曰疡寒热胕肿。',
+      modern: '少阳相火司天之年，火气从天而下降，肺气受其影响而顺应，燥金之气兴起，风行严厉。大暑流行，人们易患咳嗽、打喷嚏、流鼻涕、流鼻血、鼻塞、口腔溃疡、寒热、足部浮肿等病症。'
+    },
+    '阳明燥金': {
+      source: '《素问 · 六元正纪大论》',
+      classical: '阳明司天，燥气下临，肝气上从，苍起木用。风乃暴举，木落草枯。民病左胠胁痛，寒清于中，感而疟。',
+      modern: '阳明燥金司天之年，燥气从天而下降，肝气受其影响而顺应，木气兴起。风气突然大起，树木落叶草木枯萎。人们易患左侧胸胁疼痛、内有寒凉、感受疟邪等病症。'
+    },
+    '太阳寒水': {
+      source: '《素问 · 六元正纪大论》',
+      classical: '太阳司天，寒气下临，心气上从，而火且明。寒清时举，胜则水冰。民病寒反热中，痈疽注下，心热烦闷。',
+      modern: '太阳寒水司天之年，寒气从天而下降，心气受其影响而顺应。寒气时常发作，甚则水结冰。人们易患外寒内热、痈疽疮疡、泄泻、心热烦闷等病症。'
+    },
+    '厥阴风木': {
+      source: '《素问 · 六元正纪大论》',
+      classical: '厥阴司天，风气下临，脾气上从，而土且隆。风乃大行，雨化乃见。民病体重肌肉萎，食减口爽，目转耳鸣。',
+      modern: '厥阴风木司天之年，风气从天而下降，脾气受其影响而顺应，土气隆盛。风气大行，降雨增多。人们易患身体沉重、肌肉萎缩、食欲减退、口淡无味、目眩耳鸣等病症。'
+    }
+  };
+
+  var ZAIQUAN_JINGWEN = {
+    '阳明燥金': {
+      source: '《素问 · 至真要大论》',
+      classical: '阳明在泉，燥淫所胜，则霿雾清暝。民病喜呕，呕有苦，善太息，心胁痛不能反侧。',
+      modern: '阳明燥金在泉之年，燥气过盛，则雾气弥漫天气清冷昏暗。人们易患呕吐、口苦、喜欢叹气、心胁疼痛不能翻身等病症。'
+    },
+    '太阳寒水': {
+      source: '《素问 · 至真要大论》',
+      classical: '太阳在泉，寒淫所胜，则凝肃惨栗。民病少腹控睾，引腰脊，上冲心痛，血见嗌痛颔肿。',
+      modern: '太阳寒水在泉之年，寒气过盛，则天寒地冻令人战栗。人们易患小腹牵引睾丸疼痛、牵连腰脊、寒气上冲心痛、出血、咽喉痛、面颊肿胀等病症。'
+    },
+    '厥阴风木': {
+      source: '《素问 · 至真要大论》',
+      classical: '厥阴在泉，风淫所胜，则地气不明，平野昧。民病洒洒振寒，善伸数欠，心痛支满。',
+      modern: '厥阴风木在泉之年，风气过盛，则大地之气不清明，平野模糊。人们易患寒战发冷、喜欢伸懒腰打哈欠、心痛胸满等病症。'
+    },
+    '少阴君火': {
+      source: '《素问 · 至真要大论》',
+      classical: '少阴在泉，热淫所胜，则焰浮川泽，阴处反明。民病腹中常鸣，气上冲胸，喘不能久立。',
+      modern: '少阴君火在泉之年，热气过盛，则火焰浮于河泽，阴蔽之处反而明亮。人们易患腹中经常鸣响、气上冲胸、气喘不能久站等病症。'
+    },
+    '太阴湿土': {
+      source: '《素问 · 至真要大论》',
+      classical: '太阴在泉，湿淫所胜，则草乃早荣。民病饮积，心痛耳聋，浑浑焞焞，嗌肿喉痹。',
+      modern: '太阴湿土在泉之年，湿气过盛，则草木提前繁荣。人们易患水饮停积、心痛、耳聋耳鸣、咽喉肿、喉痹等病症。'
+    },
+    '少阳相火': {
+      source: '《素问 · 至真要大论》',
+      classical: '少阳在泉，火淫所胜，则焰明郊野。民病注泄赤白，少腹痛溺赤，甚则血便。',
+      modern: '少阳相火在泉之年，火气过盛，则郊野明亮如火焰。人们易患赤白泄泻、小腹疼痛、小便赤红、严重的便血等病症。'
+    }
+  };
+
+  // 个人体质经文
+  var BODY_JINGWEN = {
+    '木': {
+      source: '《素问 · 阴阳应象大论》',
+      classical: '东方生风，风生木，木生酸，酸生肝，肝生筋，筋生心。肝主目。其在天为风，在地为木，在体为筋，在脏为肝，在色为苍，在音为角，在声为呼，在变动为握，在窍为目，在味为酸，在志为怒。',
+      modern: '东方对应风，风对应木，木对应酸味，酸味对应肝脏，肝对应筋。肝开窍于目。先天木气旺盛者，体质偏于肝木，性情或偏急躁易怒，需注意肝脏保健。'
+    },
+    '火': {
+      source: '《素问 · 阴阳应象大论》',
+      classical: '南方生热，热生火，火生苦，苦生心，心生血，血生脾。心主舌。其在天为热，在地为火，在体为脉，在脏为心，在色为赤，在音为徵，在声为笑，在变动为忧，在窍为舌，在味为苦，在志为喜。',
+      modern: '南方对应热，热对应火，火对应苦味，苦味对应心脏，心对应血脉。心开窍于舌。先天火气旺盛者，体质偏于心火，性情或偏开朗热情，需注意心血管健康。'
+    },
+    '土': {
+      source: '《素问 · 阴阳应象大论》',
+      classical: '中央生湿，湿生土，土生甘，甘生脾，脾生肉，肉生肺。脾主口。其在天为湿，在地为土，在体为肉，在脏为脾，在色为黄，在音为宫，在声为歌，在变动为哕，在窍为口，在味为甘，在志为思。',
+      modern: '中央对应湿，湿对应土，土对应甘味，甘味对应脾脏，脾对应肌肉。脾开窍于口。先天土气旺盛者，体质偏于脾土，思虑较重，需注意脾胃消化功能。'
+    },
+    '金': {
+      source: '《素问 · 阴阳应象大论》',
+      classical: '西方生燥，燥生金，金生辛，辛生肺，肺生皮毛，皮毛生肾。肺主鼻。其在天为燥，在地为金，在体为皮毛，在脏为肺，在色为白，在音为商，在声为哭，在变动为咳，在窍为鼻，在味为辛，在志为悲。',
+      modern: '西方对应燥，燥对应金，金对应辛味，辛味对应肺脏，肺对应皮毛。肺开窍于鼻。先天金气旺盛者，体质偏于肺金，情感或偏悲秋伤感，需注意呼吸系统保养。'
+    },
+    '水': {
+      source: '《素问 · 阴阳应象大论》',
+      classical: '北方生寒，寒生水，水生咸，咸生肾，肾生骨髓，髓生肝。肾主耳。其在天为寒，在地为水，在体为骨，在脏为肾，在色为黑，在音为羽，在声为呻，在变动为栗，在窍为耳，在味为咸，在志为恐。',
+      modern: '北方对应寒，寒对应水，水对应咸味，咸味对应肾脏，肾对应骨髓。肾开窍于耳。先天水气旺盛者，体质偏于肾水，性情或偏沉静内敛，需注意肾脏及骨骼保养。'
+    }
+  };
+
+  // 天气灾害预测
+  var WEATHER_PREDICTION = {
+    '木运': {
+      overall: '木运太过，风邪偏盛。全年风力较大，春季尤甚，可能出现暴风、龙卷风等强对流天气。',
+      disasters: [
+        { type: '风灾', desc: '春季大风频繁，可能出现暴风、龙卷风等极端天气，对农业、建筑造成损害。' },
+        { type: '脾胃相关', desc: '风气太过则脾土受克，全年可能出现异常降雨变化，影响农作物生长。' },
+        { type: '气候偏温', desc: '全年气温偏高，春夏季可能提前，冬季偏暖。' }
+      ],
+      source: '《素问 · 气交变大论》："岁木太过，风气流行，脾土受邪。"',
+      modern: '木运太过之年，全年以风气偏盛为主要特征，需防范春季大风及异常天气。'
+    },
+    '木运不及': {
+      overall: '木运不及，燥气反胜。全年气候偏干燥，风力偏弱但秋季燥气明显。',
+      disasters: [
+        { type: '干旱', desc: '春季降水偏少，可能出现春旱，影响春耕播种。' },
+        { type: '秋燥', desc: '秋季燥气偏重，可能出现秋旱，空气湿度低。' },
+        { type: '温度偏低', desc: '全年气温偏低，春夏季可能延迟。' }
+      ],
+      source: '《素问 · 气交变大论》："岁木不及，燥乃大行。"',
+      modern: '木运不及之年，全年以燥气偏盛为主要特征，需注意防旱。'
+    },
+    '火运': {
+      overall: '火运太过，暑热偏盛。全年气温偏高，夏季可能出现极端高温天气。',
+      disasters: [
+        { type: '高温干旱', desc: '夏季炎热异常，可能出现持续高温天气，部分地区出现严重干旱。' },
+        { type: '森林火灾', desc: '干燥季节火灾风险增加，需加强防火。' },
+        { type: '暴雨骤至', desc: '热极反雨，可能突发暴雨洪涝，尤其是夏秋之交。' }
+      ],
+      source: '《素问 · 气交变大论》："岁火太过，炎暑流行，肺金受邪。"',
+      modern: '火运太过之年，需重点防范夏季高温酷暑及由此引发的干旱、火灾等灾害。'
+    },
+    '火运不及': {
+      overall: '火运不及，寒气偏盛。全年气温偏低，夏季不热，可能出现倒春寒、冷夏等现象。',
+      disasters: [
+        { type: '低温冷害', desc: '全年气温偏低，农作物生长期可能受到影响。' },
+        { type: '倒春寒', desc: '春季气温反复，可能出现倒春寒，影响春播作物。' },
+        { type: '降水偏多', desc: '寒湿之气偏盛，降水可能偏多，部分地区可能出现洪涝。' }
+      ],
+      source: '《素问 · 气交变大论》："岁火不及，寒乃大行。"',
+      modern: '火运不及之年，需重点防范低温冷害及由此引发的农业损失。'
+    },
+    '土运': {
+      overall: '土运太过，湿气偏盛。全年降雨偏多，湿度较大，可能出现洪涝灾害。',
+      disasters: [
+        { type: '洪涝', desc: '全年降雨偏多，夏季可能出现严重洪涝灾害，低洼地区需特别注意。' },
+        { type: '泥石流/滑坡', desc: '强降雨可能引发山区泥石流和山体滑坡。' },
+        { type: '湿度过高', desc: '空气湿度长期偏高，食物易霉变，需防潮防霉。' }
+      ],
+      source: '《素问 · 气交变大论》："岁土太过，雨湿流行，肾水受邪。"',
+      modern: '土运太过之年，需重点防范暴雨洪涝及次生灾害。'
+    },
+    '土运不及': {
+      overall: '土运不及，风气反胜。全年风力偏大，降雨偏少，可能出现干旱。',
+      disasters: [
+        { type: '干旱', desc: '全年降雨偏少，可能出现季节性干旱，农业用水紧张。' },
+        { type: '沙尘天气', desc: '风大土燥，可能出现沙尘暴或扬沙天气。' },
+        { type: '温差大', desc: '昼夜温差可能较大，天气变化频繁。' }
+      ],
+      source: '《素问 · 气交变大论》："岁土不及，风乃大行，化气不令。"',
+      modern: '土运不及之年，需重点防范干旱及风沙天气。'
+    },
+    '金运': {
+      overall: '金运太过，燥气偏盛。全年空气干燥，秋季燥气尤重，降水偏少。',
+      disasters: [
+        { type: '干旱', desc: '全年降水偏少，特别是秋季可能出现严重秋旱。' },
+        { type: '寒潮', desc: '秋季降温剧烈，可能出现早霜和寒潮。' },
+        { type: '空气质量', desc: '干燥少雨可能导致空气质量下降，雾霾天气增多。' }
+      ],
+      source: '《素问 · 气交变大论》："岁金太过，燥气流行，肝木受邪。"',
+      modern: '金运太过之年，需重点防范干旱和秋季骤寒天气。'
+    },
+    '金运不及': {
+      overall: '金运不及，火气反胜。全年气温偏高，秋季温暖异常。',
+      disasters: [
+        { type: '暖秋', desc: '秋季气温偏高，可能出现异常温暖的天气，影响农作物收获。' },
+        { type: '冬暖', desc: '冬季可能偏暖，降雪偏少。' },
+        { type: '极端天气', desc: '气候反常可能导致极端天气事件增多。' }
+      ],
+      source: '《素问 · 气交变大论》："岁金不及，炎火乃行，生气乃用。"',
+      modern: '金运不及之年，需关注气候反常带来的各类极端天气。'
+    },
+    '水运': {
+      overall: '水运太过，寒气偏盛。全年气温偏低，冬季严寒，雨雪偏多。',
+      disasters: [
+        { type: '严寒', desc: '冬季气温偏低，可能出现极端低温和暴雪天气。' },
+        { type: '雨雪冰冻', desc: '可能出现大范围雨雪冰冻灾害，影响交通和电力。' },
+        { type: '春涝', desc: '春季融雪可能导致河流水位上涨，出现春汛。' }
+      ],
+      source: '《素问 · 气交变大论》："岁水太过，寒气流行，邪害心火。"',
+      modern: '水运太过之年，需重点防范严寒冰冻天气及次生灾害。'
+    },
+    '水运不及': {
+      overall: '水运不及，湿气反胜。全年湿度偏大，降雨偏多，可能出现洪涝。',
+      disasters: [
+        { type: '洪涝', desc: '全年降雨偏多，部分地区可能出现洪涝灾害。' },
+        { type: '暖冬', desc: '冬季可能偏暖，降雪偏少。' },
+        { type: '湿冷', desc: '虽然气温不低，但湿气重导致体感阴冷潮湿。' }
+      ],
+      source: '《素问 · 气交变大论》："岁水不及，湿乃大行，长气反用。"',
+      modern: '水运不及之年，需重点防范湿涝灾害及潮湿天气带来的影响。'
+    }
+  };
+
+  // ===== 工具函数 =====
+  function renderJingwenBlock(source, classical, modern) {
+    var html = '<div class="jingwen">';
+    html += '<div class="source">' + source + '</div>';
+    if (classical) {
+      html += '<div class="classical">' + classical + '</div>';
+    }
+    html += '<div class="modern">' + modern + '</div>';
+    html += '</div>';
+    return html;
+  }
+
+  // ===== 年运查询 =====
+  window.queryYear = function() {
+    try {
+      var yearInput = document.getElementById('year-input');
+      if (!yearInput) return;
+      var year = parseInt(yearInput.value);
+      if (isNaN(year) || year < 1) { alert('请输入有效年份'); return; }
+
+      var gz = getGanZhi(year);
+      var yun = getYun(gz.gan);
+      var guo = getGuo(gz.gan);
+      var yunKey = yun + (guo !== '不及' ? '' : '不及');
+      var sz = getSiZai(gz.zhi);
+      var lb = getLiuBuSiQi(gz.zhi);
+
+      var now = new Date();
+      var curJq = getCurrentJieqi(now.getMonth() + 1, now.getDate());
+
+      var jw = JINGWEN[yunKey] || {
+        source: '《素问》相关篇章',
+        classical: '暂无具体经文记录',
+        modern: '此运特征待补充'
+      };
+
+      var stjw = SITIAN_JINGWEN[sz.si] || {
+        source: '《素问》', classical: '暂无记录', modern: '待补充'
+      };
+      var zqjw = ZAIQUAN_JINGWEN[sz.zai] || {
+        source: '《素问》', classical: '暂无记录', modern: '待补充'
+      };
+
+      var qiSteps = ['初之气','二之气','三之气（司天）','四之气','五之气','终之气（在泉）'];
+      var qiPeriods = ['大寒-春分','春分-小满','小满-大暑','大暑-秋分','秋分-小雪','小雪-大寒'];
+
+      var html = '';
+      html += '<div class="result-header">';
+      html += '<div class="ganzhi">' + gz.full + '年</div>';
+      html += '<div class="year-label">公元 ' + year + ' 年 · 天干地支纪年</div>';
+      html += '</div>';
+
+      html += '<div class="info-grid">';
+      html += '<div class="info-item"><div class="label">天干</div><div class="value">' + gz.gan + '（' + guo + '）</div></div>';
+      html += '<div class="info-item"><div class="label">地支</div><div class="value">' + gz.zhi + '</div></div>';
+      html += '<div class="info-item"><div class="label">主运</div><div class="value highlight">' + yun + '运 · ' + guo + '</div></div>';
+      html += '<div class="info-item"><div class="label">司天</div><div class="value highlight">' + sz.si + '</div></div>';
+      html += '<div class="info-item"><div class="label">在泉</div><div class="value highlight">' + sz.zai + '</div></div>';
+      html += '<div class="info-item"><div class="label">当前节气</div><div class="value">' + curJq.name + '</div></div>';
+      html += '</div>';
+
+      html += '<div class="divider">六气六步</div>';
+      html += '<div style="overflow-x:auto;margin:16px 0;">';
+      html += '<table class="qibiao"><thead><tr>';
+      html += '<th>气步</th><th>主气</th><th>客气</th><th>时段</th>';
+      html += '</tr></thead><tbody>';
+      for (var i = 0; i < 6; i++) {
+        var isSpecial = (i === 2 || i === 5);
+        html += '<tr>';
+        html += '<td style="' + (isSpecial ? 'color:var(--red-seal);font-weight:600;' : '') + '">' + qiSteps[i] + '</td>';
+        html += '<td>' + lb.zhuqi[i] + '</td>';
+        html += '<td style="' + (isSpecial ? 'color:var(--red-seal);' : '') + '">' + lb.keqi[i] + '</td>';
+        html += '<td style="font-size:0.8rem;color:var(--ink-faint);">' + qiPeriods[i] + '</td>';
+        html += '</tr>';
+      }
+      html += '</tbody></table></div>';
+
+      html += '<div class="divider">五运详述</div>';
+      html += renderJingwenBlock(jw.source, jw.classical, jw.modern);
+
+      html += '<div class="divider">司天之气</div>';
+      html += renderJingwenBlock(stjw.source, stjw.classical, stjw.modern);
+
+      html += '<div class="divider">在泉之气</div>';
+      html += renderJingwenBlock(zqjw.source, zqjw.classical, zqjw.modern);
+
+      html += '<div class="divider">二十四节气</div>';
+      html += '<div class="jieqi-grid">';
+      for (var j = 0; j < JIEQI_LIST.length; j++) {
+        var isCur = (curJq.name === JIEQI_LIST[j]);
+        html += '<div class="jieqi-item' + (isCur ? ' current' : '') + '">';
+        html += '<div class="jq-name">' + JIEQI_LIST[j] + '</div>';
+        html += '<div class="jq-date">' + (JIEQI_DATES[JIEQI_LIST[j]] || '') + '</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+
+      var result = document.getElementById('year-result');
+      result.innerHTML = html;
+      result.classList.add('show');
+    } catch (e) {
+      console.error('年运查询错误:', e);
+      alert('查询出错：' + e.message);
+    }
+  };
+
+  // ===== 个人运气 =====
+  window.queryPersonal = function() {
+    try {
+      var year = parseInt(document.getElementById('birth-year').value);
+      var month = parseInt(document.getElementById('birth-month').value);
+      var day = parseInt(document.getElementById('birth-day').value);
+
+      if (isNaN(year) || isNaN(month) || isNaN(day)) { alert('请完整填写出生日期'); return; }
+
+      var gz = getGanZhi(year);
+      var yun = getYun(gz.gan);
+      var guo = getGuo(gz.gan);
+      var sz = getSiZai(gz.zhi);
+      var org = WUXING_ORG[yun];
+      var isGuo = (guo === '太过');
+      var diseaseLevel = isGuo ? 'high' : 'medium';
+
+      var isSiTian = (month >= 4 && month <= 8);
+      var nearQi = isSiTian ? sz.si : sz.zai;
+      var nearQiLabel = isSiTian ? '偏司天之气' : '偏在泉之气';
+
+      var html = '';
+      html += '<div class="result-header">';
+      html += '<div class="ganzhi">' + gz.full + '年出生</div>';
+      html += '<div class="year-label">公历 ' + year + '年' + month + '月' + day + '日 · 先天运气推算</div>';
+      html += '</div>';
+
+      html += '<div class="info-grid">';
+      html += '<div class="info-item"><div class="label">年干支</div><div class="value">' + gz.full + '</div></div>';
+      html += '<div class="info-item"><div class="label">大运</div><div class="value highlight">' + yun + '运 · ' + guo + '</div></div>';
+      html += '<div class="info-item"><div class="label">司天</div><div class="value">' + sz.si + '</div></div>';
+      html += '<div class="info-item"><div class="label">在泉</div><div class="value">' + sz.zai + '</div></div>';
+      html += '<div class="info-item"><div class="label">先天体质倾向</div><div class="value highlight" style="color:' + WUXING_COLORS[yun] + '">' + org.zang + '脏偏弱（' + yun + '）</div></div>';
+      html += '<div class="info-item"><div class="label">出生时近</div><div class="value">' + nearQi + '（' + nearQiLabel + '）</div></div>';
+      html += '</div>';
+
+      html += '<div class="divider">先天体质分析</div>';
+      var bj = BODY_JINGWEN[yun];
+      html += renderJingwenBlock(bj.source, bj.classical, bj.modern);
+
+      html += '<div class="divider">疾病易发倾向</div>';
+      html += '<div class="disease-card ' + diseaseLevel + '">';
+      html += '<div class="disease-title">⚑ 重点关注：' + org.zang + '系疾病（' + (diseaseLevel === 'high' ? '高风险' : '中等风险') + '）</div>';
+      html += '<p style="font-size:0.92rem;line-height:1.8;margin-top:6px;">' + getDiseaseDesc(yun, isGuo) + '</p>';
+      html += '</div>';
+
+      html += '<div class="disease-card medium">';
+      html += '<div class="disease-title">⚑ ' + org.zang + '之表里：' + org.fu + '及关联系统</div>';
+      html += '<p style="font-size:0.92rem;line-height:1.8;margin-top:6px;">' + getRelatedDisease(yun, isGuo) + '</p>';
+      html += '</div>';
+
+      html += '<div class="disease-card low">';
+      html += '<div class="disease-title">⚑ 养生建议</div>';
+      html += '<p style="font-size:0.92rem;line-height:1.8;margin-top:6px;">' + getHealthAdvice(yun, isGuo) + '</p>';
+      html += '</div>';
+
+      var result = document.getElementById('personal-result');
+      result.innerHTML = html;
+      result.classList.add('show');
+    } catch (e) {
+      console.error('个人运气查询错误:', e);
+      alert('查询出错：' + e.message);
+    }
+  };
+
+  function getDiseaseDesc(yun, isGuo) {
+    var descs = {
+      '木': isGuo
+        ? '木运太过，肝气偏旺。易患肝阳上亢、头痛眩晕、目赤肿痛、急躁易怒、胁肋胀痛等肝经实热证。春季尤需注意，可能诱发中风、高血压等。'
+        : '木运不及，肝气偏弱。易患肝血不足、目眩眼花、筋脉拘急、胸胁隐痛、情绪抑郁等肝经虚证。春季需注意防风邪侵袭，防肝气郁结。',
+      '火': isGuo
+        ? '火运太过，心火偏旺。易患心烦失眠、口舌生疮、心悸胸闷、面赤口渴、小便短赤等心经实热证。夏季尤需注意，可能诱发心血管疾病急性发作。'
+        : '火运不及，心阳不足。易患心悸怔忡、畏寒肢冷、胸痹心痛、面色苍白、气短乏力等心阳虚证。冬季需注意保暖，防范心脑血管疾病。',
+      '土': isGuo
+        ? '土运太过，湿气偏重。易患脘腹胀满、食欲不振、大便溏泄、肢体困重、痰饮水肿等脾湿证。长夏季节尤需注意，可能加重消化系统负担。'
+        : '土运不及，脾气虚弱。易患消化不良、腹泻便溏、面色萎黄、四肢无力、消瘦或虚胖等脾虚证。需注意饮食调养，避免生冷油腻之物。',
+      '金': isGuo
+        ? '金运太过，燥气偏盛。易患干咳少痰、咽干鼻燥、皮肤干裂、大便干结、易感冒等肺燥证。秋季尤需注意，可能诱发呼吸道疾病。'
+        : '金运不及，肺气偏弱。易患咳嗽气喘、自汗畏风、声音低微、易感冒、皮肤不固等肺气虚证。需注意呼吸系统的日常保养，适当锻炼肺功能。',
+      '水': isGuo
+        ? '水运太过，寒气偏盛。易患腰膝冷痛、畏寒肢冷、小便清长、水肿、遗精早泄等肾阳虚证。冬季尤需注意，可能加重骨关节疾病。'
+        : '水运不及，肾阴不足。易患腰膝酸软、眩晕耳鸣、五心烦热、盗汗、失眠多梦等肾阴虚证。需注意节制房事，避免过度劳累伤肾。'
+    };
+    return descs[yun];
+  }
+
+  function getRelatedDisease(yun, isGuo) {
+    var relations = {
+      '木': '肝木克脾土，脾胃功能亦易受影响，可能出现消化功能紊乱。肝主筋，注意关节筋骨问题。',
+      '火': '心火与肾水相济，肾水可能受克，注意泌尿生殖系统。心主血脉，需注意血液循环问题。',
+      '土': '脾土生肺金，肺可能受累，注意呼吸系统。脾主运化水湿，水湿停聚则生痰饮。',
+      '金': '肺金生肾水，肾可能偏旺或偏弱。肺主皮毛，注意皮肤问题及免疫力。',
+      '水': '肾水生肝木，肝可能偏旺。肾主骨生髓，注意骨骼、牙齿、头发等方面。'
+    };
+    return relations[yun];
+  }
+
+  function getHealthAdvice(yun, isGuo) {
+    var advice = {
+      '木': '宜养肝疏泄。饮食宜酸甘（酸入肝），多食绿色蔬菜。情志宜畅达，戒怒戒郁。春季宜早起活动，舒展筋骨。可按摩太冲、期门等穴位。',
+      '火': '宜养心安神。饮食宜苦味（苦入心），适量食用红色食物。情志宜平和，戒大喜大悲。夏季宜午间小憩，避免烈日暴晒。可按摩内关、神门等穴位。',
+      '土': '宜健脾化湿。饮食宜甘淡（甘入脾），少食肥甘厚腻。情志宜宽和，减少过度思虑。长夏季节注意防潮。可按摩足三里、中脘等穴位。',
+      '金': '宜润肺清燥。饮食宜辛润（辛入肺），多食白色食物如梨、百合、银耳。情志宜豁达，戒悲忧。秋季注意保暖防燥。可按摩太渊、列缺等穴位。',
+      '水': '宜补肾益精。饮食宜咸润（咸入肾），适量食用黑色食物如黑芝麻、黑豆。情志宜宁静，戒恐惧。冬季宜早睡晚起，注意保暖。可按摩太溪、肾俞等穴位。'
+    };
+    return advice[yun];
+  }
+
+  // ===== 天气灾害 =====
+  window.queryWeather = function() {
+    try {
+      var yearInput = document.getElementById('weather-year');
+      if (!yearInput) { alert('页面元素未找到，请刷新页面'); return; }
+      var year = parseInt(yearInput.value);
+      if (isNaN(year) || year < 1) { alert('请输入有效年份'); return; }
+
+      var gz = getGanZhi(year);
+      var yun = getYun(gz.gan);
+      var guo = getGuo(gz.gan);
+      var yunKey = yun + '运' + (guo === '不及' ? '不及' : '');
+      var sz = getSiZai(gz.zhi);
+
+      console.log('[debug] 年=' + year + ', 干支=' + gz.full + ', 运=' + yun + ', 太过/不及=' + guo + ', yunKey=' + yunKey);
+
+      var wp = WEATHER_PREDICTION[yunKey];
+      if (!wp) {
+        alert('未找到对应的天气预测数据（键值=' + yunKey + '），请尝试其他年份。');
+        return;
+      }
+
+      var html = '';
+      html += '<div class="result-header">';
+      html += '<div class="ganzhi">' + gz.full + '年 · 气候推演</div>';
+      html += '<div class="year-label">' + year + ' 年五运六气灾害预测</div>';
+      html += '</div>';
+
+      html += '<div class="info-grid">';
+      html += '<div class="info-item"><div class="label">大运</div><div class="value highlight">' + yun + '运 · ' + guo + '</div></div>';
+      html += '<div class="info-item"><div class="label">司天</div><div class="value">' + sz.si + '</div></div>';
+      html += '<div class="info-item"><div class="label">在泉</div><div class="value">' + sz.zai + '</div></div>';
+      html += '</div>';
+
+      html += '<div class="divider">全年气候总势</div>';
+      html += '<p style="text-align:center;font-size:0.95rem;line-height:1.9;margin-bottom:20px;">' + wp.overall + '</p>';
+
+      html += '<div class="divider">灾害预测详情</div>';
+      for (var i = 0; i < wp.disasters.length; i++) {
+        var d = wp.disasters[i];
+        html += '<div class="disaster-item">';
+        html += '<div class="disaster-type">⚠ ' + d.type + '</div>';
+        html += '<div class="disaster-desc">' + d.desc + '</div>';
+        html += '</div>';
+      }
+
+      html += '<div class="divider">经典依据</div>';
+      html += renderJingwenBlock(wp.source, '', wp.modern);
+
+      html += '<div class="divider">司天在泉气候影响</div>';
+      html += '<p style="font-size:0.92rem;line-height:1.9;margin-bottom:16px;">';
+      html += '<strong style="color:var(--ink-light);">司天（' + sz.si + '）影响上半年：</strong>';
+      html += getSiTianWeather(sz.si);
+      html += '</p>';
+      html += '<p style="font-size:0.92rem;line-height:1.9;margin-bottom:16px;">';
+      html += '<strong style="color:var(--ink-light);">在泉（' + sz.zai + '）影响下半年：</strong>';
+      html += getZaiQuanWeather(sz.zai);
+      html += '</p>';
+
+      html += '<div style="margin-top:24px;padding:16px;background:rgba(194,59,39,0.04);border:1px dashed var(--red-seal);border-radius:3px;">';
+      html += '<p style="font-size:0.82rem;color:var(--ink-faint);text-align:center;line-height:1.8;">';
+      html += '⚠ 以上预测基于《黄帝内经》五运六气理论推演，属传统中医学说范畴，<br>';
+      html += '仅供学习研究和文化参考，不作为现代气象学预测依据。';
+      html += '</p></div>';
+
+      var resultEl = document.getElementById('weather-result');
+      if (!resultEl) { alert('结果容器未找到，请刷新页面'); return; }
+      resultEl.innerHTML = html;
+      resultEl.classList.add('show');
+    } catch (e) {
+      console.error('天气预测错误:', e);
+      alert('推演出错：' + e.message);
+    }
+  };
+
+  function getSiTianWeather(si) {
+    var weathers = {
+      '少阴君火': '上半年偏热，气温偏高，春夏可能出现异常高温天气。心火当令，需注意防暑降温。',
+      '太阴湿土': '上半年偏湿，降雨偏多，湿度较大。春夏可能出现连阴雨天气，需注意防涝防潮。',
+      '少阳相火': '上半年火气偏盛，气温偏高，可能出现热浪。春末夏初需防范高温及强对流天气。',
+      '阳明燥金': '上半年偏燥，空气干燥，降水偏少。春季可能出现春旱，需注意防火及呼吸道防护。',
+      '太阳寒水': '上半年偏寒，气温偏低，可能出现倒春寒。春季回暖较慢，需注意防寒保暖。',
+      '厥阴风木': '上半年风大，气流不稳，天气多变。春季多风，可能出现大风、沙尘天气，气温波动大。'
+    };
+    return weathers[si] || '待补充';
+  }
+
+  function getZaiQuanWeather(zai) {
+    var weathers = {
+      '阳明燥金': '下半年偏燥，秋季干燥明显，降水偏少。需注意秋旱及防火。',
+      '太阳寒水': '下半年偏寒，冬季严寒，可能出现极端低温。需注意防寒防冻。',
+      '厥阴风木': '下半年风气偏盛，秋季多风，天气变化频繁。需注意防风及气温骤变。',
+      '少阴君火': '下半年偏热，冬季可能偏暖（暖冬）。需注意暖冬对农业的影响。',
+      '太阴湿土': '下半年偏湿，秋雨较多，可能出现秋涝。需注意防涝防潮。',
+      '少阳相火': '下半年火气仍存，秋老虎明显，气温偏高。需注意防暑及抗旱。'
+    };
+    return weathers[zai] || '待补充';
+  }
+
+  // ===== 标签切换 =====
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.getAttribute('data-tab')).classList.add('active');
+    });
+  });
+
+  // ===== 初始化日期下拉 =====
+  var sel = document.getElementById('birth-day');
+  for (var d = 1; d <= 31; d++) {
+    var opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d + '日';
+    sel.appendChild(opt);
+  }
+  sel.value = 15;
+
+  // ===== 页面加载后自动查询当年 =====
+
+})();
+
+
+// ===== 主题切换 =====
+function setTheme(mode){
+  if(mode==='light'){
+    document.body.classList.add('light-mode');
+    document.getElementById('btn-dark').classList.remove('active');
+    document.getElementById('btn-light').classList.add('active');
+    localStorage.setItem('theme','light');
+  } else {
+    document.body.classList.remove('light-mode');
+    document.getElementById('btn-dark').classList.add('active');
+    document.getElementById('btn-light').classList.remove('active');
+    localStorage.setItem('theme','dark');
+  }
+}
+// 读取保存的主题
+(function(){
+  if(localStorage.getItem('theme')==='light') setTheme('light');
+})();
+
+// ===== HOME =====
+function renderHome(){document.getElementById('meridianCards').innerHTML=DATA.meridians.map(m=>`<div class="meridian-card m-${m.color}" onclick="showSyndromesByMeridian('${m.name}')">${m.name}<small>${m.desc}</small></div>`).join('')}
+
+// ===== SYNDROMES =====
+function renderSyndromes(filter){const c=document.getElementById('syndromesList');let ss=filter?DATA.syndromes.filter(s=>s.meridian===filter):DATA.syndromes;let h=`<div class="filters"><span class="filter-chip ${!filter?'active':''}" onclick="renderSyndromes()">全部</span>`;DATA.meridians.forEach(m=>{h+=`<span class="filter-chip ${filter===m.name?'active':''}" onclick="renderSyndromes('${m.name}')">${m.name}</span>`});h+=`</div><div class="cards-grid">`;ss.forEach(s=>{h+=`<div class="card" onclick="showSyndromeDetail('${s.id}')"><h3>${tagHTML(s.meridian)} ${s.id}</h3><p><strong>方剂：</strong>${chip(s.formula,`showFormulaDetail('${s.formula}')`)}</p><p><strong>要点：</strong>${s.key}</p></div>`});h+=`</div>`;c.innerHTML=h}
+function showSyndromesByMeridian(m){showPage('syndromes');renderSyndromes(m)}
+function showSyndromeDetail(id){showPage('syndromes');document.getElementById('syndromesList').style.display='none';const s=DATA.syndromes.find(x=>x.id===id);if(!s)return;const c=document.getElementById('syndromeDetail');c.style.display='';let h=`<div class="detail-header"><button class="back-btn" onclick="renderSyndromes()">← 返回</button><h2 class="detail-title">${tagHTML(s.meridian)} ${s.id}</h2></div><div class="detail-content">`;h+=`<div class="detail-section"><h4>主证</h4><ul>${s.main.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;if(s.secondary.length)h+=`<div class="detail-section"><h4>兼证</h4><ul>${s.secondary.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;h+=`<div class="detail-section"><h4>病机</h4><p style="font-size:14px">${s.mechanism}</p></div>`;h+=`<div class="detail-section"><h4>辨证要点</h4><div class="original-text">${s.key}</div></div>`;if(s.differentiate.length){h+=`<div class="detail-section"><h4>类证鉴别</h4><div class="table-wrap"><table><tr><th>证候</th><th>鉴别要点</th></tr>`;s.differentiate.forEach(d=>{h+=`<tr><td>${chip(d[0],`showSyndromeDetail('${d[0]}')`)}</td><td>${d[1]}</td></tr>`});h+=`</table></div></div>`}if(s.variants.length){h+=`<div class="detail-section"><h4>兼证变证</h4><div class="table-wrap"><table><tr><th>兼证</th><th>证候</th><th>方剂</th></tr>`;s.variants.forEach(v=>{h+=`<tr><td>${v[0]}</td><td>${chip(v[1],`showSyndromeDetail('${v[1]}')`)}</td><td>${chip(v[2],`showFormulaDetail('${v[2]}')`)}</td></tr>`});h+=`</table></div></div>`}h+=`<div class="detail-section"><h4>原文</h4>`;s.articles.forEach(a=>{h+=`<div class="original-text">${a.text}<div class="source">—— ${a.source}</div></div>`});h+=`</div>`;h+=`<div class="detail-section"><h4>对应方剂</h4><p>${chip(s.formula,`showFormulaDetail('${s.formula}')`)}</p></div></div>`;c.innerHTML=h}
+
+// ===== FORMULAS =====
+function renderFormulas(){const c=document.getElementById('formulasList');const cats=[...new Set(DATA.formulas.map(f=>f.category))];let h=`<div class="filters"><span class="filter-chip active" onclick="filterFormulas('')">全部</span>`;cats.forEach(ct=>{h+=`<span class="filter-chip" onclick="filterFormulas('${ct}')">${ct}</span>`});h+=`</div><div class="cards-grid" id="formulaCards">`;DATA.formulas.forEach(f=>{h+=`<div class="card" onclick="showFormulaDetail('${f.id}')" data-cat="${f.category}"><h3>${f.id}${f.alias?` <small style="color:var(--text-secondary)">（${f.alias}）</small>`:''}</h3><p><span class="tag tag-type">${f.category}</span></p><p><strong>主治：</strong>${chip(f.syndrome,`showSyndromeDetail('${f.syndrome}')`)}</p><p><strong>功效：</strong>${f.action}</p></div>`});h+=`</div>`;c.innerHTML=h}
+function filterFormulas(cat){document.querySelectorAll('#formulasList .filter-chip').forEach(c=>c.classList.remove('active'));event.target.classList.add('active');document.querySelectorAll('#formulaCards .card').forEach(card=>{card.style.display=(!cat||card.dataset.cat===cat)?'':'none'})}
+function showFormulaDetail(id){showPage('formulas');document.getElementById('formulasList').style.display='none';const f=DATA.formulas.find(x=>x.id===id);if(!f)return;const c=document.getElementById('formulaDetail');c.style.display='';let h=`<div class="detail-header"><button class="back-btn" onclick="renderFormulas()">← 返回</button><h2 class="detail-title">${f.id}${f.alias?` <small style="color:var(--text-secondary);font-size:16px">（${f.alias}）</small>`:''}</h2></div><div class="detail-content">`;h+=`<div class="detail-section"><h4>分类</h4><p><span class="tag tag-type">${f.category}</span></p></div>`;h+=`<div class="detail-section"><h4>组成</h4><div class="table-wrap"><table><tr><th>药味</th><th>用量（汉代 → 现代）</th><th>功效</th></tr>`;f.ingredients.forEach(i=>{h+=`<tr><td><strong>${i[0]}</strong></td><td>${i[1]}</td><td>${i[2]}</td></tr>`});h+=`</table></div></div>`;if(f.method)h+=`<div class="detail-section"><h4>煎服法</h4><div class="original-text">${f.method}</div></div>`;h+=`<div class="detail-section"><h4>功效</h4><p style="font-size:14px">${f.action}</p></div>`;if(f.formulaMeaning)h+=`<div class="detail-section"><h4>方义</h4><p style="font-size:14px">${f.formulaMeaning}</p></div>`;if(f.contraindication)h+=`<div class="detail-section"><h4>禁忌</h4><p style="font-size:14px;color:#c44d8b">${f.contraindication}</p></div>`;if(f.variants.length){h+=`<div class="detail-section"><h4>加减变化</h4>`;f.variants.forEach(v=>{h+=`<p style="font-size:14px">${v[0]} → ${chip(v[1],`showFormulaDetail('${v[1]}')`)}</p>`});h+=`</div>`}h+=`<div class="detail-section"><h4>主治证候</h4><p>${chip(f.syndrome,`showSyndromeDetail('${f.syndrome}')`)}</p></div></div>`;c.innerHTML=h}
+
+// ===== SYMPTOMS =====
+function renderSymptoms(){const c=document.getElementById('symptomsList');const cats=[...new Set(DATA.symptoms.map(s=>s.category))];let h=`<div class="filters"><span class="filter-chip active" onclick="renderSymptoms()">全部</span>`;cats.forEach(ct=>{h+=`<span class="filter-chip" onclick="filterSymptoms('${ct}')">${ct}</span>`});h+=`</div><div class="table-wrap"><table><tr><th>症状</th><th>类别</th><th>涉及证候</th></tr>`;DATA.symptoms.forEach(s=>{h+=`<tr style="cursor:pointer" onclick="showSymptomDetail('${s.id}')"><td><strong>${s.id}</strong></td><td><span class="tag tag-type">${s.category}</span></td><td>${s.syndromes.map(x=>chip(x.name,`showSyndromeDetail('${x.name}')`)).join('')}</td></tr>`});h+=`</table></div>`;c.innerHTML=h}
+function filterSymptoms(cat){document.querySelectorAll('#symptomsList .filter-chip').forEach(c=>c.classList.remove('active'));event.target.classList.add('active');const c=document.getElementById('symptomsList');let ss=cat?DATA.symptoms.filter(s=>s.category===cat):DATA.symptoms;let h=`<div class="filters"><span class="filter-chip ${!cat?'active':''}" onclick="renderSymptoms()">全部</span>`;[...new Set(DATA.symptoms.map(s=>s.category))].forEach(ct=>{h+=`<span class="filter-chip ${cat===ct?'active':''}" onclick="filterSymptoms('${ct}')">${ct}</span>`});h+=`</div><div class="table-wrap"><table><tr><th>症状</th><th>类别</th><th>涉及证候</th></tr>`;ss.forEach(s=>{h+=`<tr style="cursor:pointer" onclick="showSymptomDetail('${s.id}')"><td><strong>${s.id}</strong></td><td><span class="tag tag-type">${s.category}</span></td><td>${s.syndromes.map(x=>chip(x.name,`showSyndromeDetail('${x.name}')`)).join('')}</td></tr>`});h+=`</table></div>`;c.innerHTML=h}
+function showSymptomDetail(id){showPage('symptoms');document.getElementById('symptomsList').style.display='none';const s=DATA.symptoms.find(x=>x.id===id);if(!s)return;const c=document.getElementById('symptomDetail');c.style.display='';let h=`<div class="detail-header"><button class="back-btn" onclick="renderSymptoms()">← 返回</button><h2 class="detail-title">${s.id}</h2></div><div class="detail-content"><div class="detail-section"><h4>六经辨证中的表现</h4><div class="table-wrap"><table><tr><th>证候</th><th>特点</th><th>伴随症状</th><th>方剂</th></tr>`;s.syndromes.forEach(x=>{h+=`<tr><td>${chip(x.name,`showSyndromeDetail('${x.name}')`)}</td><td>${x.feature}</td><td>${x.accompany}</td><td>${chip(x.formula,`showFormulaDetail('${x.formula}')`)}</td></tr>`});h+=`</table></div></div></div>`;c.innerHTML=h}
+
+// ===== SYMPTOM CHECKER =====
+let selectedSymptoms=new Set();
+function renderChecker(){document.getElementById('symptomSelector').innerHTML=DATA.symptoms.map(s=>`<span class="symptom-btn" data-id="${s.id}" onclick="toggleSymptom(this,'${s.id}')">${s.id}</span>`).join('')}
+function toggleSymptom(btn,id){if(selectedSymptoms.has(id)){selectedSymptoms.delete(id);btn.classList.remove('selected')}else{selectedSymptoms.add(id);btn.classList.add('selected')}updateChecker()}
+function updateChecker(){const r=document.getElementById('checkerResult');if(selectedSymptoms.size===0){r.innerHTML='';return}const matches=DATA.syndromes.map(s=>{const allSymptoms=[...s.main,...s.secondary];const matched=[],missing=[];selectedSymptoms.forEach(sel=>{if(allSymptoms.some(a=>a.includes(sel)))matched.push(sel);else missing.push(sel)});const nameMatch=selectedSymptoms.has(s.id)?[s.id]:[];const totalMatched=matched.length+nameMatch.length;if(totalMatched===0)return null;const totalSymptoms=allSymptoms.length||1;const score=Math.round((totalMatched/Math.max(totalSymptoms,selectedSymptoms.size))*100);return{syndrome:s,matched,missing,score,totalMatched}}).filter(Boolean).sort((a,b)=>b.score-a.score||b.totalMatched-a.totalMatched);if(!matches.length){r.innerHTML='<p style="color:var(--text-secondary);font-size:14px">没有找到匹配的证候，试试其他症状组合？</p>';return}let h=`<h4 style="margin-bottom:12px">匹配结果（${matches.length}个证候）</h4>`;matches.forEach(m=>{h+=`<div class="match-card" onclick="showSyndromeDetail('${m.syndrome.id}')"><h4>${tagHTML(m.syndrome.meridian)} ${m.syndrome.id}</h4><div class="match-bar"><div class="match-bar-fill" style="width:${Math.min(m.score,100)}%"></div></div><div class="match-detail">匹配度 ${Math.min(m.score,100)}% · 方剂：${m.syndrome.formula}</div><div class="match-symptoms"><span class="matched">✓ ${m.matched.join('、')}</span>${m.missing.length?` · <span class="missing">✗ ${m.missing.join('、')}</span>`:''}</div></div>`});r.innerHTML=h}
+
+// ===== NAV =====
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>showPage(tab.dataset.page))});
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.page===name));
+  if(name==='syndromes'){document.getElementById('syndromesList').style.display='';document.getElementById('syndromeDetail').style.display='none'}
+  if(name==='formulas'){document.getElementById('formulasList').style.display='';document.getElementById('formulaDetail').style.display='none'}
+  if(name==='symptoms'){document.getElementById('symptomsList').style.display='';document.getElementById('symptomDetail').style.display='none'}
+  if(name==='jinkui'&&!document.getElementById('jinkuiContent').innerHTML){renderJinkui()}
+}
+
+// ===== 五运六气 Tab =====
+document.querySelectorAll('.wq-tab-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.wq-tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.wq-panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('wq-panel-'+this.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== 金匮要略 =====
+const JK_CATS=[
+  {name:"痰饮",key:"金匮·痰饮",desc:"痰饮停聚"},
+  {name:"水气",key:"金匮·水气",desc:"水气泛溢"},
+  {name:"黄疸",key:"金匮·黄疸",desc:"湿热发黄"},
+  {name:"胸痹",key:"金匮·胸痹",desc:"胸阳痹阻"},
+  {name:"血痹",key:"金匮·血痹",desc:"血行涩滞"},
+  {name:"虚劳",key:"金匮·虚劳",desc:"气血阴阳虚损"},
+  {name:"奔豚",key:"金匮·奔豚",desc:"冲气上逆"},
+  {name:"肺痿",key:"金匮·肺痿",desc:"肺气虚冷"},
+  {name:"肺痈",key:"金匮·肺痈",desc:"热毒壅肺"},
+  {name:"呕吐哕",key:"金匮·呕吐",desc:"胃虚气逆"},
+  {name:"寒疝",key:"金匮·寒疝",desc:"血虚寒凝"},
+  {name:"百合",key:"金匮·百合",desc:"心肺阴虚"},
+  {name:"疮痈",key:"金匮·疮痈",desc:"热毒蕴结"},
+  {name:"消渴",key:"金匮·消渴",desc:"肾阳不足"},
+  {name:"妇人病",key:"金匮·妇人",desc:"妇人杂病",extra:["金匮·妇人妊娠","金匮·妇人杂病"]}
+];
+
+function renderJinkui(filter){
+  const c=document.getElementById('jinkuiContent');
+  let h=`<div class="section-title" style="color:var(--gold2)">金匮要略 · 杂病分类</div>`;
+  h+=`<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.8">《金匮要略》为张仲景论治杂病的经典，以脏腑经络辨证为主，共25篇。</p>`;
+  h+=`<div class="jk-meridian-cards">`;
+  JK_CATS.forEach(cat=>{
+    h+=`<div class="jk-meridian-card" style="${filter===cat.key?'box-shadow:0 0 0 2px var(--gold2);':''}" onclick="renderJinkui('${cat.key}')">${cat.name}<small>${cat.desc}</small></div>`;
+  });
+  h+=`</div>`;
+  if(filter){
+    const cat=JK_CATS.find(c=>c.key===filter);
+    let ss=DATA.syndromes.filter(s=>{
+      if(s.meridian===filter)return true;
+      if(cat&&cat.extra&&cat.extra.includes(s.meridian))return true;
+      return false;
+    });
+    h+=`<div style="margin-top:16px"><div class="section-title">${filter.replace('金匮·','')}（${ss.length}条）</div>`;
+    h+=`<div class="cards-grid">`;
+    ss.forEach(s=>{
+      const mkey=s.meridian.replace('金匮·','');
+      h+=`<div class="card" onclick="showSyndromeDetail('${s.id}')"><h3><span class="tag tag-金匮">${mkey}</span> ${s.id}</h3><p>${chip(s.formula,`showFormulaDetail('${s.formula}')`)}</p><p style="color:var(--text-secondary);font-size:12px">${s.key.slice(0,30)}…</p></div>`;
+    });
+    h+=`</div></div>`;
+  } else {
+    // 首次进入：显示全部金匮证候
+    const allJK=DATA.syndromes.filter(s=>s.meridian.startsWith('金匮'));
+    h+=`<div style="margin-top:16px"><div class="section-title">全部金匮证候（${allJK.length}条）</div><div class="cards-grid">`;
+    allJK.forEach(s=>{
+      const mkey=s.meridian.replace('金匮·','');
+      h+=`<div class="card" onclick="showSyndromeDetail('${s.id}')"><h3><span class="tag tag-金匮">${mkey}</span> ${s.id}</h3><p>${chip(s.formula,`showFormulaDetail('${s.formula}')`)}</p><p style="color:var(--text-secondary);font-size:12px">${s.key.slice(0,30)}…</p></div>`;
+    });
+    h+=`</div></div>`;
+  }
+  c.innerHTML=h;
+}
+
+function showJinkuiCat(key){showPage('jinkui');renderJinkui(key);}
+
+// ===== 钤法推演 =====
+const GAN_LIST=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const ZHI_LIST=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+function calcYearGZ(y){return{gan:GAN_LIST[(y-4+4000)%10],zhi:ZHI_LIST[(y-4+4800)%12]};}
+function calcDayGZ(y,m,d){
+  const a=Math.floor((14-m)/12),yr=y+4800-a,mn=m+12*a-3;
+  const jd=d+Math.floor((153*mn+2)/5)+365*yr+Math.floor(yr/4)-Math.floor(yr/100)+Math.floor(yr/400)-32045;
+  const base=2415021,diff=jd-base;
+  return{gan:GAN_LIST[((6+diff)%10+10)%10],zhi:ZHI_LIST[((6+diff)%12+12)%12]};
+}
+function getZhiAnimal(z){return{"子":"鼠","丑":"牛","寅":"虎","卯":"兔","辰":"龙","巳":"蛇","午":"马","未":"羊","申":"猴","酉":"鸡","戌":"狗","亥":"猪"}[z]||z;}
+const QF_LIUQI={"子":"少阴","午":"少阴","丑":"太阴","未":"太阴","寅":"少阳","申":"少阳","卯":"阳明","酉":"阳明","辰":"太阳","戌":"太阳","巳":"厥阴","亥":"厥阴"};
+const QF_SX={"子":{yang:"太阳",yin:"少阳"},"丑":{yang:"厥阴",yin:"阳明"},"寅":{yang:"少阴",yin:"太阳"},"卯":{yang:"太阴",yin:"少阴"},"辰":{yang:"少阳",yin:"太阴"},"巳":{yang:"阳明",yin:"少阳"},"午":{yang:"太阳",yin:"厥阴"},"未":{yang:"厥阴",yin:"太阳"},"申":{yang:"少阴",yin:"厥阴"},"酉":{yang:"太阴",yin:"少阴"},"戌":{yang:"少阳",yin:"太阴"},"亥":{yang:"阳明",yin:"阳明"}};
+const QF_WY={"甲":{yun:"土运",zang:"脾胃",xing:"阳土"},"己":{yun:"土运",zang:"脾胃",xing:"阴土"},"乙":{yun:"金运",zang:"肺大肠",xing:"阴金"},"庚":{yun:"金运",zang:"肺大肠",xing:"阳金"},"丙":{yun:"水运",zang:"肾膀胱",xing:"阳水"},"辛":{yun:"水运",zang:"肾膀胱",xing:"阴水"},"丁":{yun:"木运",zang:"肝胆",xing:"阴木"},"壬":{yun:"木运",zang:"肝胆",xing:"阳木"},"戊":{yun:"火运",zang:"心小肠",xing:"阳火"},"癸":{yun:"火运",zang:"心小肠",xing:"阴火"}};
+const QF_YYDESC={"甲":"甲年土运太过，土气偏盛，脾胃易受湿邪，多见腹满泄利痞满之证。","己":"己年土运不及，脾气偏衰，多见食不下、腹满时痛之太阴证。","乙":"乙年金运不及，肺气偏弱，多见咳喘、皮毛不固之证。","庚":"庚年金运太过，肺燥明显，多见阳明燥热、大便干结之证。","丙":"丙年水运太过，寒水偏盛，多见少阴寒证、水气泛滥之证。","辛":"辛年水运不及，肾阴不足，多见少阴阴虚火旺之心烦不寐证。","丁":"丁年木运不及，肝血不足，多见厥阴寒热错杂之证。","壬":"壬年木运太过，风气偏盛，多见少阳证或肝气横逆之证。","戊":"戊年火运太过，热气偏盛，多见阳明经证、热扰胸膈之证。","癸":"癸年火运不及，心阳不足，多见少阴阳衰厥逆之证。"};
+const QF_MC={"太阳":"#c06020","阳明":"#943030","少阳":"#2a7a4a","太阴":"#2a6a8a","少阴":"#4a3a8a","厥阴":"#7a2a5a"};
+const QF_YY={"甲":"阳","丙":"阳","戊":"阳","庚":"阳","壬":"阳","乙":"阴","丁":"阴","己":"阴","辛":"阴","癸":"阴"};
+const QF_LQDESC={"子":"子午少阴","午":"子午少阴","丑":"丑未太阴","未":"丑未太阴","寅":"寅申少阳","申":"寅申少阳","卯":"卯酉阳明","酉":"卯酉阳明","辰":"辰戌太阳","戌":"辰戌太阳","巳":"巳亥厥阴","亥":"巳亥厥阴"};
+
+function updateQFBirth(){
+  const y=parseInt(document.getElementById('qf-by').value);
+  const m=parseInt(document.getElementById('qf-bm').value);
+  const d=parseInt(document.getElementById('qf-bd').value);
+  const el=document.getElementById('qfBirthDisp');
+  if(isNaN(y)||y<=0){el.textContent='—';return;}
+  const gz=calcYearGZ(y);
+  if(!isNaN(m)&&!isNaN(d)&&m>=1&&m<=12&&d>=1&&d<=31){
+    const dgz=calcDayGZ(y,m,d);el.textContent=gz.gan+gz.zhi+'年 · 日'+dgz.gan+dgz.zhi;
+  }else{el.textContent=gz.gan+gz.zhi+'年';}
+}
+function updateQFDay(){
+  const y=parseInt(document.getElementById('qf-dy').value);
+  const m=parseInt(document.getElementById('qf-dm').value);
+  const d=parseInt(document.getElementById('qf-dd').value);
+  const el=document.getElementById('qfDayDisp');
+  if(isNaN(y)||y<=0){el.textContent='—';return;}
+  if(!isNaN(m)&&!isNaN(d)&&m>=1&&m<=12&&d>=1&&d<=31){
+    const ygz=calcYearGZ(y);const dgz=calcDayGZ(y,m,d);
+    el.textContent=ygz.gan+ygz.zhi+'年 · 日'+dgz.gan+dgz.zhi;
+  }else{const g=calcYearGZ(y);el.textContent=g.gan+g.zhi+'年';}
+}
+function doQianfa(){
+  const by=parseInt(document.getElementById('qf-by').value);
+  const bm=parseInt(document.getElementById('qf-bm').value);
+  const bd=parseInt(document.getElementById('qf-bd').value);
+  const dy=parseInt(document.getElementById('qf-dy').value);
+  const dm=parseInt(document.getElementById('qf-dm').value);
+  const dd=parseInt(document.getElementById('qf-dd').value);
+  const dh=document.getElementById('qf-dh').value;
+  const ms=document.getElementById('qf-ms').value.trim();
+  if(isNaN(by)||by<=0){alert('请填写出生年份');return;}
+  if(isNaN(dy)||isNaN(dm)||isNaN(dd)){alert('请填写完整的发病日期（年月日）');return;}
+  const bYGZ=calcYearGZ(by);const dDGZ=calcDayGZ(dy,dm,dd);
+  const bZhi=bYGZ.zhi;const dGan=dDGZ.gan;const dZhi=dDGZ.zhi;
+  const ganYY=QF_YY[dGan];const sx=QF_SX[bZhi];
+  const m1=ganYY==='阳'?sx.yang:sx.yin;const m2=QF_LIUQI[dZhi];
+  const wy=QF_WY[dGan];
+  const ss1=DATA.syndromes.filter(s=>s.meridian===m1&&!s.meridian.startsWith('金匮'));
+  const ss2=DATA.syndromes.filter(s=>s.meridian===m2&&!s.meridian.startsWith('金匮'));
+  const hm=dh?QF_LIUQI[dh]||'':'';
+  let html='';
+  html+=`<div class="rs"><h3>输入信息 · 干支换算结果</h3>`;
+  html+=`<div class="ri"><div class="ril">出生日期</div><div class="riv">阳历 ${by}年${isNaN(bm)?'':bm+'月'}${isNaN(bd)?'':bd+'日'} → 年柱：<strong style="color:var(--accent-light)">${bYGZ.gan+bYGZ.zhi}</strong>（${bZhi}·${getZhiAnimal(bZhi)}）</div></div>`;
+  html+=`<div class="ri"><div class="ril">发病日期</div><div class="riv">阳历 ${dy}年${dm}月${dd}日 → 日柱：<strong style="color:var(--accent-light)">${dDGZ.gan+dDGZ.zhi}</strong>（天干${dGan}·${ganYY}干，地支${dZhi}）</div></div>`;
+  if(dh){html+=`<div class="ri"><div class="ril">发病时辰</div><div class="riv">${dh}时 → 六气归经：<strong style="color:var(--accent-light)">${hm||'—'}</strong></div></div>`;}
+  html+=`</div>`;
+  html+=`<div class="rs"><h3>一、属相法归经（主推演）</h3>`;
+  html+=`<div class="rmeridian" style="background:${QF_MC[m1]||'#555'}20;border:1px solid ${QF_MC[m1]||'#555'}60;color:${QF_MC[m1]||'#aaa'}"><span class="tag tag-${m1}">${m1}</span> ${m1}病</div>`;
+  html+=`<div class="ri"><div class="ril">推演依据</div><div class="riv">患者属${getZhiAnimal(bZhi)}（${bZhi}），发病日天干${dGan}（${ganYY}干），按钤法取${ganYY}日归经，病属 <strong style="color:var(--accent)">${m1}经</strong></div></div>`;
+  html+=`<div class="ri"><div class="ril">对应证候</div><div class="riv">${ss1.map(s=>`<span class="link-chip" onclick="showSyndromeDetail('${s.id}')">${s.id}</span>`).join('')||'（无直接匹配）'}</div></div>`;
+  html+=`<div class="ri"><div class="ril">推荐方剂</div><div class="riv"><div class="rfl">${[...new Set(ss1.map(s=>s.formula))].map(f=>`<button class="fb" onclick="showFormulaDetail('${f}')">${f}</button>`).join('')||'—'}</div></div></div>`;
+  html+=`</div>`;
+  html+=`<div class="rs"><h3>二、发病日六气归经（辅助参考）</h3>`;
+  html+=`<div class="rmeridian" style="background:${QF_MC[m2]||'#555'}20;border:1px solid ${QF_MC[m2]||'#555'}60;color:${QF_MC[m2]||'#aaa'}"><span class="tag tag-${m2}">${m2}</span> ${m2}病</div>`;
+  html+=`<div class="ri"><div class="ril">推演依据</div><div class="riv">发病日地支${dZhi}，六气歌「${QF_LQDESC[dZhi]}」，归经为 <strong style="color:var(--accent)">${m2}经</strong></div></div>`;
+  html+=`<div class="ri"><div class="ril">推荐方剂</div><div class="riv"><div class="rfl">${[...new Set(ss2.map(s=>s.formula))].map(f=>`<button class="fb" onclick="showFormulaDetail('${f}')">${f}</button>`).join('')||'—'}</div></div></div>`;
+  if(dh&&hm){html+=`<div class="ri"><div class="ril">时柱六气</div><div class="riv">${dh}时（${hm}），可作三重参考</div></div>`;}
+  html+=`</div>`;
+  html+=`<div class="rs"><h3>三、五运脏腑推演</h3>`;
+  html+=`<div class="ri"><div class="ril">天干化运</div><div class="riv">发病日天干${dGan}（${wy.xing}），化为 <strong style="color:var(--accent)">${wy.yun}</strong>，对应脏腑：<strong style="color:var(--accent)">${wy.zang}</strong></div></div>`;
+  html+=`<div class="ri"><div class="ril">病邪性质</div><div class="riv">${QF_YYDESC[dGan]}</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="rs"><h3>四、综合判断</h3>`;
+  if(m1===m2){html+=`<div class="nb">两种推演方法均指向 <strong>${m1}经</strong>，结果一致，可信度较高。${ms?`<br>患者主症「${ms}」，可在症状查询页面进一步验证。`:''}</div>`;}
+  else{html+=`<div class="nb">属相法：<strong>${m1}经</strong>，六气法：<strong>${m2}经</strong>，两法不同。<br>建议以 <strong style="color:var(--accent)">四诊合参</strong> 为主，参考两经症状综合判断。${ms?`<br>主症「${ms}」可在症状查询页面验证。`:''}</div>`;}
+  html+=`<div class="nb" style="margin-top:9px">⚠️ <strong>重要：</strong>钤法为辅助参考，临床用药须以「四诊合参、辨证论治」为准则。</div>`;
+  html+=`</div>`;
+  document.getElementById('qfOut').innerHTML=html;
+  document.getElementById('qfResult').style.display='block';
+  document.getElementById('qfResult').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ===== HOME =====
+function renderHome(){
+  // 六经卡片（过滤掉金匮）
+  document.getElementById('meridianCards').innerHTML=DATA.meridians
+    .filter(m=>!m.name.startsWith('金匮'))
+    .map(m=>`<div class="meridian-card m-${m.color}" onclick="showSyndromesByMeridian('${m.name}')">${m.name}<small>${m.desc}</small></div>`)
+    .join('');
+  // 金匮分类卡片
+  document.getElementById('jinkuiCards').innerHTML=JK_CATS
+    .map(cat=>`<div class="jk-meridian-card" onclick="showJinkuiCat('${cat.key}')">${cat.name}<small>${cat.desc}</small></div>`)
+    .join('');
+}
+
+// ===== INIT =====
+renderHome();renderSyndromes();renderFormulas();renderSymptoms();renderChecker();
+</script>
+</body>
+</html>
